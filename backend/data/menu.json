@@ -1,0 +1,70 @@
+[
+  {
+    "name": "Gazpacho Andaluz Tradicional",
+    "description": "Sopa fría de tomates maduros, pimiento, pepino y aceite de oliva virgen extra.",
+    "price": 8.5,
+    "category": "entrante",
+    "allergens": [],
+    "is_vegan": true,
+    "is_vegetarian": true,
+    "available": true,
+    "id": "1"
+  },
+  {
+    "name": "Croquetas de Jamón Ibérico",
+    "description": "Croquetas cremosas elaboradas con bechamel casera y jamón de bellota 100% ibérico.",
+    "price": 12.0,
+    "category": "entrante",
+    "allergens": [
+      "gluten",
+      "lácteos",
+      "huevo"
+    ],
+    "is_vegan": false,
+    "is_vegetarian": false,
+    "available": true,
+    "id": "2"
+  },
+  {
+    "name": "Paella de Mariscos del Señorito",
+    "description": "Arroz bomba cocinado a fuego lento con gambas peladas, calamares y mejillones sin cáscara.",
+    "price": 21.0,
+    "category": "principal",
+    "allergens": [
+      "marisco",
+      "pescado"
+    ],
+    "is_vegan": false,
+    "is_vegetarian": false,
+    "available": true,
+    "id": "3"
+  },
+  {
+    "name": "Hamburguesa Vegana de Garbanzos y Espinacas",
+    "description": "Medallón casero servido en pan artesanal con aguacate, tomate y mayonesa vegana de ajo.",
+    "price": 14.5,
+    "category": "principal",
+    "allergens": [
+      "gluten",
+      "soja"
+    ],
+    "is_vegan": true,
+    "is_vegetarian": true,
+    "available": true,
+    "id": "4"
+  },
+  {
+    "name": "Tarta de Queso Cremosita San Sebastián",
+    "description": "Tarta horneada al estilo vasco, tostada por fuera y fluida en el centro.",
+    "price": 7.0,
+    "category": "postre",
+    "allergens": [
+      "lácteos",
+      "huevo"
+    ],
+    "is_vegan": false,
+    "is_vegetarian": true,
+    "available": true,
+    "id": "5"
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "code": "RES-053F80",
+    "customer_name": "Laura García",
+    "phone": "655443322",
+    "date_time": "mañana a las 21:00",
+    "guests": 2,
+    "status": "confirmada"
+  },
+  {
+    "code": "RES-295F85",
+    "customer_name": "Pepito Pérez",
+    "phone": "655443322",
+    "date_time": "lunes a las 21:00",
+    "guests": 3,
+    "status": "confirmada"
+  },
+  {
+    "code": "RES-88A69E",
+    "customer_name": "Pepito Pérez",
+    "phone": "655443322",
+    "date_time": "lunes 21:00",
+    "guests": 3,
+    "status": "confirmada"
+  }
+]
