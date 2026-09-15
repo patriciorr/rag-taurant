@@ -67,7 +67,7 @@ The application features a sleek **React + Material UI** frontend served through
 ## 📁 Project Structure
 
 ```text
-ragtaurant/
+rag-taurant/
 ├── 📂 backend/                   # FastAPI Backend & RAG Engine
 │   ├── 📂 app/
 │   │   ├── 📂 api/               # API endpoints (menu, chat)
@@ -113,8 +113,8 @@ Launch the entire stack (Nginx, React, FastAPI, ChromaDB, and Ollama) with a sin
 
 #### 1. Clone the Repository
 ```bash
-git clone git@github.com:patriciorr/RAGtaurant.git
-cd RAGtaurant
+git clone https://github.com/patriciorr/rag-taurant.git
+cd rag-taurant
 ```
 
 #### 2. Start the Containers
