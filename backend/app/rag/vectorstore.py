@@ -1,6 +1,7 @@
 # app/rag/vectorstore.py
 import chromadb
 from chromadb.config import Settings as ChromaSettings
+from langchain_ollama import OllamaEmbeddings
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from app.core.config import settings
 from app.models.menu import MenuItem
@@ -14,8 +15,10 @@ class VectorStoreManager:
             settings=ChromaSettings(allow_reset=True)
         )
         # 2. Embeddings multilingües locales
-        self.embeddings_model = HuggingFaceEmbeddings(
-            model_name=settings.EMBEDDING_MODEL_NAME
+        self.embeddings_model = OllamaEmbeddings(
+            model=settings.EMBEDDING_MODEL,
+            base_url=settings.OLLAMA_BASE_URL,
+            dimensions=384
         )
         
         # 3. Colección del Menú

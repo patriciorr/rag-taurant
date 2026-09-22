@@ -21,9 +21,9 @@ lerna-debug.log*
 
 backend/chroma_db
 
-node_modules
-dist
-dist-ssr
+frontend/node_modules
+frontend/dist
+frontend/dist-ssr
 *.local
 
 # Editor directories and files

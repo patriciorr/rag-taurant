@@ -1,42 +1,184 @@
-# app/rag/tools.py
+# backend/app/rag/tools.py
+import uuid
+from datetime import datetime
+from typing import Optional
 from langchain_core.tools import tool
-from app.rag.vectorstore import vector_store
-from app.services.weather import get_restaurant_weather
-from app.services.reservation import create_reservation
+from pymongo import MongoClient
+from langchain_ollama import OllamaEmbeddings
+from app.core.config import settings
+from app.models.reservation import ReservationCreate, ReservationUpdate, ReservationInDB
 
+client = MongoClient(settings.MONGODB_URI)
+db = client[settings.DB_NAME]
+
+embeddings_model = OllamaEmbeddings(
+    base_url=settings.OLLAMA_BASE_URL,
+    model=settings.EMBEDDING_MODEL
+)
+
+# --- BÚSQUEDA RAG: MENÚ ---
 @tool
-def search_menu_and_info(query: str) -> str:
-    """
-    Consulta la carta, platos, alérgenos, precios u horarios del restaurante en la base vectorial.
-    Usa esta herramienta cuando el usuario pregunte sobre qué comer, precios, ingredientes o alérgenos.
-    """
-    results = vector_store.search_similar_dishes(query, n_results=3)
-    if not results:
-        return "No se encontraron platos o información coincidente en el menú."
+def search_menu(query: str) -> str:
+    """Busca en la carta platos, ingredientes, precios, opciones veganas/vegetarianas y alérgenos."""
+    query_vector = embeddings_model.embed_query(query)
     
-    formatted = []
-    for r in results:
-        formatted.append(f"- {r['content']}")
-    return "\n\n".join(formatted)
+    pipeline = [
+        {
+            "$vectorSearch": {
+                "index": "vector_index",
+                "path": "embedding",
+                "queryVector": query_vector,
+                "numCandidates": 10,
+                "limit": 4
+            }
+        },
+        {"$project": {"_id": 0, "embedding": 0}}
+    ]
+    
+    results = list(db["dishes"].aggregate(pipeline))
+    if not results:
+        return "No se encontraron platos coincidentes en la carta."
+    
+    response = "Platos encontrados en la carta:\n"
+    for d in results:
+        response += f"- {d.get('name')} ({d.get('price')}€): {d.get('description')} [Alérgenos: {', '.join(d.get('allergens', [])) or 'Ninguno'}]\n"
+    return response
+
+# --- BÚSQUEDA RAG: INFORMACIÓN GENERAL (llm.txt) ---
+@tool
+def search_info(query: str) -> str:
+    """Busca información institucional del restaurante: ubicación, horarios, políticas de terraza, aparcamiento o normas."""
+    query_vector = embeddings_model.embed_query(query)
+    
+    pipeline = [
+        {
+            "$vectorSearch": {
+                "index": "vector_index",
+                "path": "embedding",
+                "queryVector": query_vector,
+                "numCandidates": 10,
+                "limit": 3
+            }
+        },
+        {"$project": {"_id": 0, "embedding": 0}}
+    ]
+    
+    results = list(db["knowledge"].aggregate(pipeline))
+    if not results:
+        return "No se encontró información institucional sobre esa consulta."
+    
+    response = "Información del restaurante:\n"
+    for info in results:
+        response += f"- {info.get('content')}\n"
+    return response
+
+# --- CRUD RESERVAS ---
+
+def _find_reservation(identifier: str) -> Optional[dict]:
+    """Busca una reserva por reservation_id, email o número de teléfono."""
+    query = {
+        "$or": [
+            {"reservation_id": identifier},
+            {"email": identifier.lower().strip()},
+            {"phone": identifier.strip()}
+        ]
+    }
+    return db["reservations"].find_one(query, {"_id": 0})
 
 @tool
-def get_weather_forecast() -> str:
-    """
-    Consulta el estado del tiempo y temperatura en el restaurante para orientar al usuario sobre su visita.
-    """
-    return get_restaurant_weather()
+def make_table_reservation(customer_name: str, email: str, phone: str, date: str, time: str, guests: int) -> str:
+    """Crea una nueva reserva de mesa. Requiere nombre, email, teléfono, fecha (YYYY-MM-DD), hora (HH:MM) y número de personas."""
+    try:
+        raw_data = {
+            "customer_name": customer_name,
+            "email": email.lower().strip(),
+            "phone": phone.strip(),
+            "date": date,
+            "time": time,
+            "guests": guests
+        }
+        validated_data = ReservationCreate(**raw_data)
+        
+        reservation_id = f"RES-{uuid.uuid4().hex[:8].upper()}"
+        reservation_db = ReservationInDB(
+            **validated_data.model_dump(),
+            reservation_id=reservation_id,
+            created_at=datetime.utcnow(),
+            status="confirmed"
+        )
+        
+        db["reservations"].insert_one(reservation_db.model_dump())
+        return f"✅ Reserva confirmada con éxito. Código de reserva: {reservation_id} a nombre de {validated_data.customer_name}."
+    except Exception as e:
+        return f"❌ Error de validación al crear la reserva: {str(e)}"
 
 @tool
-def make_table_reservation(customer_name: str, phone: str, date_time: str, guests: int) -> str:
-    """
-    Crea y confirma una reserva de mesa en el restaurante.
-    Requiere: nombre del cliente, teléfono de contacto, fecha/hora deseada y número de comensales.
-    """
-    res = create_reservation(customer_name, phone, date_time, guests)
+def get_table_reservation(identifier: str) -> str:
+    """Obtiene los detalles de una reserva existente mediante su ID de reserva, correo electrónico o teléfono."""
+    reservation = _find_reservation(identifier)
+    if not reservation:
+        return f"No se encontró ninguna reserva asociada al identificador '{identifier}'."
+    
     return (
-        f"✅ Reserva confirmada. Código: {res['code']} | "
-        f"Titular: {res['customer_name']} | Fecha/Hora: {res['date_time']} | "
-        f"Comensales: {res['guests']} personas."
+        f"📋 Detalle de la Reserva ({reservation['reservation_id']}):\n"
+        f"- Cliente: {reservation['customer_name']}\n"
+        f"- Email: {reservation['email']}\n"
+        f"- Teléfono: {reservation['phone']}\n"
+        f"- Fecha: {reservation['date']} a las {reservation['time']}\n"
+        f"- Comensales: {reservation['guests']} personas\n"
+        f"- Estado: {reservation['status']}"
     )
 
-bot_tools = [search_menu_and_info, get_weather_forecast, make_table_reservation]
+@tool
+def edit_table_reservation(
+    identifier: str, 
+    date: Optional[str] = None, 
+    time: Optional[str] = None, 
+    guests: Optional[int] = None,
+    customer_name: Optional[str] = None
+) -> str:
+    """Edita los datos de una reserva existente buscándola por ID, email o teléfono."""
+    reservation = _find_reservation(identifier)
+    if not reservation:
+        return f"No se encontró ninguna reserva para modificar con el identificador '{identifier}'."
+    
+    update_fields = {}
+    if date: update_fields["date"] = date
+    if time: update_fields["time"] = time
+    if guests: update_fields["guests"] = guests
+    if customer_name: update_fields["customer_name"] = customer_name
+    
+    if not update_fields:
+        return "No se especificaron campos para actualizar."
+        
+    try:
+        validated_update = ReservationUpdate(**update_fields)
+        changes = {k: v for k, v in validated_update.model_dump().items() if v is not None}
+        
+        db["reservations"].update_one(
+            {"reservation_id": reservation["reservation_id"]},
+            {"$set": changes}
+        )
+        return f"✅ Reserva '{reservation['reservation_id']}' actualizada correctamente con los nuevos datos: {changes}."
+    except Exception as e:
+        return f"❌ Error de validación al editar la reserva: {str(e)}"
+
+@tool
+def delete_table_reservation(identifier: str) -> str:
+    """Elimina o cancela una reserva existente a partir de su ID de reserva, correo electrónico o teléfono."""
+    reservation = _find_reservation(identifier)
+    if not reservation:
+        return f"No se encontró ninguna reserva para cancelar con el identificador '{identifier}'."
+    
+    db["reservations"].delete_one({"reservation_id": reservation["reservation_id"]})
+    return f"🗑️ La reserva '{reservation['reservation_id']}' a nombre de {reservation['customer_name']} ha sido cancelada con éxito."
+
+# Exportar conjunto de herramientas para el agente
+bot_tools = [
+    search_menu,
+    search_info,
+    make_table_reservation,
+    get_table_reservation,
+    edit_table_reservation,
+    delete_table_reservation
+]

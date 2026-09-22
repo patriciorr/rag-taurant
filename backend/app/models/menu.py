@@ -11,19 +11,26 @@ class Category(str, Enum):
 
 class Allergen(str, Enum):
     GLUTEN = "gluten"
-    LACTEOS = "lácteos"
-    FRUTOS_SECOS = "frutos secos"
+    CRUSTACEOS = "crustáceos"
     HUEVO = "huevo"
     PESCADO = "pescado"
-    MARISCO = "marisco"
+    CACAHUETE = "cacahuete"
     SOJA = "soja"
+    LACTEOS = "lácteos"
+    FRUTOS_SECOS = "frutos secos"
+    APIO = "apio"
+    MOSTAZA = "mostaza"
+    SESAMO = "sésamo"
+    SULFITOS = "sulfitos"
+    ALTRAMUZ = "altramuces"
+    MOLUSCOS = "moluscos"
 
 class MenuItemBase(BaseModel):
     name: str = Field(..., example="Paella Marinera Tradicional")
     description: str = Field(..., example="Arroz bomba cocinado a fuego lento con marisco fresco del día.")
     price: float = Field(..., gt=0, example=18.50)
     category: Category = Field(..., example=Category.PRINCIPAL)
-    allergens: List[Allergen] = Field(default_factory=list, example=[Allergen.MARISCO, Allergen.PESCADO])
+    allergens: List[Allergen] = Field(default_factory=list, example=[Allergen.MOLUSCOS, Allergen.PESCADO])
     is_vegan: bool = Field(default=False)
     is_vegetarian: bool = Field(default=False)
     available: bool = Field(default=True)
@@ -32,20 +39,20 @@ class MenuItemCreate(MenuItemBase):
     pass
 
 class MenuItemUpdate(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    price: Optional[float] = None
-    category: Optional[Category] = None
-    allergens: Optional[List[Allergen]] = None
-    is_vegan: Optional[bool] = None
-    is_vegetarian: Optional[bool] = None
-    available: Optional[bool] = None
+    name: Optional[str] = Field(..., example="Paella de Carne")
+    description: Optional[str] = Field(..., example="Arroz bomba cocinado a fuego lento con pollo y verduras.")
+    price: Optional[float] = Field(None, gt=0, example=18.50)
+    category: Optional[Category] = Field(None, example=Category.PRINCIPAL)
+    allergens: Optional[List[Allergen]] = Field(None, example=[Allergen.SOJA, Allergen.SESAMO])
+    is_vegan: Optional[bool] = Field(..., example=False)
+    is_vegetarian: Optional[bool] = Field(..., example=False)
+    available: Optional[bool] = Field(..., example=True)
 
 class MenuItem(MenuItemBase):
     id: str
 
     def to_rag_text(self) -> str:
-        """Formatea el plato en un texto descriptivo óptimo para la búsqueda vectorial RAG."""
+        """Formats the menu item into a descriptive text suitable for RAG vector search."""
         diet_labels = []
         if self.is_vegan:
             diet_labels.append("Apto para veganos")

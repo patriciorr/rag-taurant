@@ -1,15 +1,14 @@
-# Etapa 1: Build de la aplicación Vite
 FROM node:20-alpine AS build
 
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
 
 COPY . .
 RUN npm run build
 
-# Etapa 2: Servidor Web de Producción
 FROM nginx:alpine
 
 COPY --from=build /app/dist /usr/share/nginx/html

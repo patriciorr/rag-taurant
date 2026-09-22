@@ -16,7 +16,7 @@ class ChatResponse(BaseModel):
 @router.post("/", response_model=ChatResponse)
 def chat_endpoint(payload: ChatRequest):
     if not payload.message.strip():
-        raise HTTPException(status_code=400, detail="El mensaje no puede estar vacío.")
+        raise HTTPException(status_code=400, detail="Message cannot be empty.")
     
     try:
         config = {"configurable": {"session_id": payload.session_id}}
@@ -26,4 +26,4 @@ def chat_endpoint(payload: ChatRequest):
             session_id=payload.session_id
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error procesando la solicitud: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error processing the request: {str(e)}")

@@ -5,20 +5,17 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Gourmet RAG Restaurant API"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
+        
+    EMBEDDING_MODEL: str = "nomic-embed-text"
     
-    CHROMA_PERSIST_DIR: str = "./chroma_db"
-    MENU_DATA_PATH: str = "./data/menu.json"
-    RESERVATIONS_DATA_PATH: str = "./data/reservations.json"
-    
-    EMBEDDING_MODEL_NAME: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-    
-    # Ollama en Docker
     OLLAMA_BASE_URL: str = "http://localhost:11434"
-    OLLAMA_MODEL: str = "llama3.2:latest"
+    OLLAMA_MODEL: str = "deepseek-r1:14b"
     
-    # Coordenadas por defecto para el tiempo (Ej. Sevilla)
     RESTAURANT_LAT: float = 37.3891
     RESTAURANT_LON: float = -5.9845
+
+    MONGODB_URI: str = "mongodb://localhost:27017/?directConnection=true"
+    DB_NAME: str = "rag_taurant"
 
     class Config:
         env_file = ".env"

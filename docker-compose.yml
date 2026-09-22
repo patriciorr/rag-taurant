@@ -2,14 +2,44 @@ services:
   ollama:
     image: ollama/ollama:latest
     container_name: ollama_restaurant
-    gpus: all
     ports:
       - "11434:11434"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     volumes:
       - ollama_storage:/root/.ollama
     networks:
       - restaurant-net
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    image: mongodb/mongodb-atlas-local:latest
+    container_name: mongodb_atlas_restaurant
+    hostname: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - configdb:/data/configdb
+      - mongot:/data/mongot
+    networks:
+      - restaurant-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
@@ -18,13 +48,20 @@ services:
     container_name: fastapi_backend
     ports:
       - "8000:8000"
+    volumes:
+      - ./backend:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
       - OLLAMA_MODEL=llama3.2:latest
-    volumes:
-      - ./backend/chroma_db:/app/chroma_db
+      - EMBEDDING_MODEL=nomic-embed-text
+      - MONGODB_URI=mongodb://mongodb:27017/?directConnection=true
+      - DB_NAME=rag-taurant
     depends_on:
-      - ollama
+      ollama:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
     networks:
       - restaurant-net
     restart: unless-stopped
@@ -48,3 +85,6 @@ networks:
 
 volumes:
   ollama_storage:
+  mongodb_data:
+  configdb:
+  mongot:
