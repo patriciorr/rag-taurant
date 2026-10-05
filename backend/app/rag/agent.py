@@ -6,11 +6,15 @@ from langchain_ollama import ChatOllama
 from langchain_core.messages import SystemMessage, ToolMessage
 from langchain_community.chat_message_histories import ChatMessageHistory
 from app.core.config import settings
-from app.models.reservation import ReservationContact
+from app.core.exceptions import DatabaseException, ReservationConflictException
+from app.models.reservation import ReservationContact, ReservationCreate
+from pydantic import ValidationError
 from app.rag.tools import (
     bot_tools,
     format_verified_table_reservation,
+    format_reservation_confirmation,
     get_verified_table_reservation,
+    prepare_table_reservation,
 )
 from app.service.reservation import reservation_service
 
@@ -56,12 +60,13 @@ SYSTEM_PROMPT = SystemMessage(
         "La previsión solo cubre hoy y los 13 días siguientes. Si la fecha no está disponible o falla el proveedor, "
         "comunica que no hay previsión sin inventar valores.\n\n"
         "Las herramientas de reserva disponibles son:\n"
-        "1. `make_table_reservation`: Para registrar una reserva (nombre, email, teléfono, fecha YYYY-MM-DD, hora HH:MM y comensales).\n"
+        "1. `make_table_reservation`: Para validar y preparar una reserva (nombre, email, teléfono, fecha YYYY-MM-DD, hora HH:MM y comensales); no la registra.\n"
         "2. `get_table_reservation`: Para consultar una reserva usando su código, email y teléfono coincidentes.\n"
         "3. `edit_table_reservation`: Para modificar una reserva.\n"
         "4. `delete_table_reservation`: Para preparar la cancelación verificando código de reserva, email y teléfono.\n\n"
-        "Antes de cancelar, presenta un resumen y espera una confirmación afirmativa explícita en un mensaje posterior. "
+        "Antes de crear o cancelar, presenta un resumen y espera una confirmación afirmativa explícita en un mensaje posterior. "
         "Nunca consideres la llamada a la herramienta ni una confirmación anterior como consentimiento. "
+        "Para crear, recoge todos los datos requeridos; no afirmes que la reserva se ha registrado hasta que el sistema lo confirme. "
         "Para cancelar una reserva, exige su código, email y teléfono coincidentes."
     )
 )
@@ -70,6 +75,7 @@ class RAGChatbotRunner:
     """Ejecutor del ciclo de pensamiento y herramientas (Tool Calling Loop) mediante LCEL."""
 
     def __init__(self) -> None:
+        self.pending_creations: Dict[str, dict[str, str | int]] = {}
         self.pending_cancellations: Dict[str, dict[str, str]] = {}
         self.verified_reservations: Dict[str, tuple[str, str]] = {}
 
@@ -98,6 +104,51 @@ class RAGChatbotRunner:
                 output = "De acuerdo, no se ha cancelado la reserva."
             else:
                 output = "La cancelación sigue pendiente. Responde «sí» para confirmar o «no» para cancelar la solicitud."
+            history.add_ai_message(output)
+            return {"output": output}
+
+        pending_creation = self.pending_creations.get(session_id)
+        if pending_creation is not None:
+            answer = self._confirmation_answer(user_text)
+            if answer == "yes":
+                self.pending_creations.pop(session_id)
+                try:
+                    reservation = ReservationCreate(**pending_creation)
+                    created = await reservation_service.create_reservation(reservation)
+                    output = (
+                        f"La reserva se ha creado correctamente. Código: {created.reservation_id}."
+                    )
+                except ValidationError as exc:
+                    output = self._reservation_validation_error(exc)
+                except ReservationConflictException:
+                    output = (
+                        "No se ha creado la reserva: ya existe una reserva activa para esos "
+                        "datos de contacto en esa fecha."
+                    )
+                except DatabaseException:
+                    logger.exception("Failed to create a confirmed reservation")
+                    output = (
+                        "No se pudo registrar la reserva por un fallo del servicio. "
+                        "No está confirmada; inténtalo de nuevo más tarde."
+                    )
+                except Exception:
+                    logger.exception("Unexpected failure creating a confirmed reservation")
+                    output = (
+                        "No se pudo registrar la reserva por un fallo del servicio. "
+                        "No está confirmada; inténtalo de nuevo más tarde."
+                    )
+            elif answer == "no":
+                self.pending_creations.pop(session_id)
+                output = (
+                    "De acuerdo, no se ha creado la reserva. Puedes enviar los datos corregidos "
+                    "para preparar una nueva solicitud."
+                )
+            else:
+                output = (
+                    "No se ha creado la reserva; la solicitud sigue pendiente. Responde «sí» "
+                    "para confirmarla o «no» para descartarla. Para corregir algún dato, "
+                    "responde «no» y vuelve a enviar los datos correctos."
+                )
             history.add_ai_message(output)
             return {"output": output}
         
@@ -137,6 +188,19 @@ class RAGChatbotRunner:
                 tool_name = tool_call["name"]
                 tool_args = tool_call["args"]
                 tool_id = tool_call.get("id", tool_name)
+
+                if tool_name == "make_table_reservation":
+                    try:
+                        reservation = prepare_table_reservation(tool_args)
+                    except ValidationError as exc:
+                        output = self._reservation_validation_error(exc)
+                        history.add_ai_message(output)
+                        return {"output": output}
+
+                    self.pending_creations[session_id] = reservation.model_dump(mode="json")
+                    output = format_reservation_confirmation(reservation)
+                    history.add_ai_message(output)
+                    return {"output": output}
                 
                 if tool_name in TOOLS_MAP:
                     try:
@@ -201,6 +265,43 @@ class RAGChatbotRunner:
         if normalized in {"no", "no cancelar", "no gracias", "cancelo"}:
             return "no"
         return None
+
+    @staticmethod
+    def _reservation_validation_error(error: ValidationError) -> str:
+        field_names = {
+            "customer_name": "nombre",
+            "email": "email",
+            "phone": "teléfono",
+            "date": "fecha",
+            "time": "hora",
+            "guests": "número de comensales",
+        }
+        messages = []
+        for item in error.errors():
+            field = str(item["loc"][0]) if item["loc"] else "datos"
+            label = field_names.get(field, "datos")
+            detail = item["msg"].lower()
+            if "field required" in detail:
+                message = f"falta el {label}"
+            elif "next 14 days" in detail:
+                message = "la fecha debe estar entre hoy y los próximos 13 días"
+            elif "time that has passed" in detail:
+                message = "la hora indicada ya ha pasado"
+            elif "available from 12:00 to 23:00" in detail:
+                message = "el horario disponible es de 12:00 a 23:00"
+            elif "available on the half-hour" in detail:
+                message = "la hora debe estar en punto o en la media hora"
+            elif field == "email":
+                message = "el email no es válido"
+            elif field == "phone":
+                message = "el teléfono no es válido"
+            elif field == "guests":
+                message = "el número de comensales debe estar entre 1 y 20"
+            else:
+                message = f"revisa el campo {label}"
+            messages.append(message)
+        details = "; ".join(dict.fromkeys(messages))
+        return f"No he creado ninguna reserva. Revisa los datos: {details}."
 
 # Exportamos el runner para app/api/chat.py
 rag_chatbot = RAGChatbotRunner()

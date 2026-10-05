@@ -1,6 +1,4 @@
 # backend/app/rag/tools.py
-import uuid
-from datetime import datetime
 from typing import Optional
 from langchain_core.tools import tool
 from pymongo import MongoClient
@@ -114,32 +112,44 @@ def _find_reservation(identifier: str) -> Optional[dict]:
     }
     return db["reservations"].find_one(query, {"_id": 0})
 
+def prepare_table_reservation(arguments: dict[str, object]) -> ReservationCreate:
+    return ReservationCreate(**arguments)
+
+
+def format_reservation_confirmation(reservation: ReservationCreate) -> str:
+    return (
+        "Revisa los datos de la reserva que se enviarán al servicio:\n"
+        f"- Nombre: {reservation.customer_name}\n"
+        f"- Email: {reservation.email}\n"
+        f"- Teléfono: {reservation.phone}\n"
+        f"- Fecha: {reservation.date.isoformat()}\n"
+        f"- Hora: {reservation.time.isoformat(timespec='minutes')}\n"
+        f"- Comensales: {reservation.guests}\n"
+        "Todavía no se ha creado. Responde «sí» para confirmar o «no» para descartarla."
+    )
+
+
 @tool
-def make_table_reservation(customer_name: str, email: str, phone: str, date: str, time: str, guests: int) -> str:
-    """Crea una nueva reserva de mesa. Requiere nombre, email, teléfono, fecha (YYYY-MM-DD), hora (HH:MM) y número de personas."""
-    try:
-        raw_data = {
+async def make_table_reservation(
+    customer_name: str,
+    email: str,
+    phone: str,
+    date: str,
+    time: str,
+    guests: int,
+) -> str:
+    """Prepara una reserva con nombre, email, teléfono, fecha, hora y comensales; no la registra."""
+    reservation = prepare_table_reservation(
+        {
             "customer_name": customer_name,
-            "email": email.lower().strip(),
-            "phone": phone.strip(),
+            "email": email,
+            "phone": phone,
             "date": date,
             "time": time,
-            "guests": guests
+            "guests": guests,
         }
-        validated_data = ReservationCreate(**raw_data)
-        
-        reservation_id = f"RES-{uuid.uuid4().hex[:8].upper()}"
-        reservation_db = ReservationInDB(
-            **validated_data.model_dump(),
-            reservation_id=reservation_id,
-            created_at=datetime.utcnow(),
-            status="confirmed"
-        )
-        
-        db["reservations"].insert_one(reservation_db.model_dump())
-        return f"✅ Reserva confirmada con éxito. Código de reserva: {reservation_id} a nombre de {validated_data.customer_name}."
-    except Exception as e:
-        return f"❌ Error de validación al crear la reserva: {str(e)}"
+    )
+    return format_reservation_confirmation(reservation)
 
 async def get_verified_table_reservation(
     reservation_id: str,
