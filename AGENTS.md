@@ -12,6 +12,11 @@ Canonical triage roles map directly to same-named labels. See `docs/agents/triag
 
 Single-context: root `CONTEXT.md` and `docs/adr/`. See `docs/agents/domain.md`.
 
+### Code and commit conventions
+
+- Write code comments in English, regardless of the conversation language.
+- Use Conventional Commits for all commit messages.
+
 ### Test validation
 
 - Always run the complete relevant test suite, including tests marked `integration`; never exclude them solely because they require an external service.

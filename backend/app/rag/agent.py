@@ -7,14 +7,18 @@ from langchain_core.messages import SystemMessage, ToolMessage
 from langchain_community.chat_message_histories import ChatMessageHistory
 from app.core.config import settings
 from app.models.reservation import ReservationContact
-from app.rag.tools import bot_tools
+from app.rag.tools import (
+    bot_tools,
+    format_verified_table_reservation,
+    get_verified_table_reservation,
+)
 from app.service.reservation import reservation_service
 
 logger = logging.getLogger(__name__)
 
 # 1. Mapa de herramientas por nombre para invocación directa
 TOOLS_MAP = {tool.name: tool for tool in bot_tools}
-RETRIEVAL_TOOLS = {"search_menu", "search_info"}
+RETRIEVAL_TOOLS = {"search_menu", "search_info", "get_weather_forecast"}
 
 # 2. Instancia del modelo Ollama en Docker con herramientas vinculadas
 llm = ChatOllama(
@@ -45,9 +49,15 @@ SYSTEM_PROMPT = SystemMessage(
         "a partir de la descripción. Para recomendaciones, deja `available_only` activado; para comprobar si un plato "
         "concreto está disponible, desactívalo y comunica el estado registrado. No afirmes que un plato es seguro para "
         "una alergia: la contaminación cruzada no consta.\n\n"
+        "Usa `get_weather_forecast` para responder sobre el tiempo en la ubicación configurada del restaurante. "
+        "Para una fecha explícita, pasa la fecha en formato YYYY-MM-DD; no inventes ni extrapoles previsiones. "
+        "Si el cliente pregunta por el día de una reserva, solo omite la fecha cuando esa reserva haya sido verificada "
+        "en esta conversación con su código, email y teléfono; el sistema aplicará la fecha verificada. "
+        "La previsión solo cubre hoy y los 13 días siguientes. Si la fecha no está disponible o falla el proveedor, "
+        "comunica que no hay previsión sin inventar valores.\n\n"
         "Las herramientas de reserva disponibles son:\n"
         "1. `make_table_reservation`: Para registrar una reserva (nombre, email, teléfono, fecha YYYY-MM-DD, hora HH:MM y comensales).\n"
-        "2. `get_table_reservation`: Para consultar una reserva.\n"
+        "2. `get_table_reservation`: Para consultar una reserva usando su código, email y teléfono coincidentes.\n"
         "3. `edit_table_reservation`: Para modificar una reserva.\n"
         "4. `delete_table_reservation`: Para preparar la cancelación verificando código de reserva, email y teléfono.\n\n"
         "Antes de cancelar, presenta un resumen y espera una confirmación afirmativa explícita en un mensaje posterior. "
@@ -61,6 +71,7 @@ class RAGChatbotRunner:
 
     def __init__(self) -> None:
         self.pending_cancellations: Dict[str, dict[str, str]] = {}
+        self.verified_reservations: Dict[str, tuple[str, str]] = {}
 
     async def ainvoke(self, input_data: dict, config: dict) -> dict:
         session_id = config.get("configurable", {}).get("session_id")
@@ -78,6 +89,9 @@ class RAGChatbotRunner:
                 contact = ReservationContact(email=pending["email"], phone=pending["phone"])
                 await reservation_service.cancel_reservation(pending["reservation_id"], contact)
                 self.pending_cancellations.pop(session_id)
+                verified = self.verified_reservations.get(session_id)
+                if verified is not None and verified[0] == pending["reservation_id"]:
+                    self.verified_reservations.pop(session_id)
                 output = f"La reserva '{pending['reservation_id']}' ha sido cancelada."
             elif answer == "no":
                 self.pending_cancellations.pop(session_id)
@@ -100,11 +114,14 @@ class RAGChatbotRunner:
                     evidence.append("No se pudo consultar la fuente autorizada.")
                     continue
                 try:
-                    result = await selected_tool.ainvoke(tool_call["args"])
+                    result = await self._invoke_tool(tool_name, tool_call["args"], session_id)
                     evidence.append(str(result))
                 except Exception:
                     logger.exception("Failed to retrieve chatbot evidence with %s", tool_name)
-                    evidence.append("No pude consultar la información del restaurante en este momento.")
+                    if tool_name == "get_table_reservation":
+                        evidence.append("No pude verificar la reserva con esos datos.")
+                    else:
+                        evidence.append("No pude consultar la información del restaurante en este momento.")
             final_output = "\n\n".join(evidence)
             history.add_ai_message(final_output)
             return {"output": final_output}
@@ -121,16 +138,18 @@ class RAGChatbotRunner:
                 tool_args = tool_call["args"]
                 tool_id = tool_call.get("id", tool_name)
                 
-                selected_tool = TOOLS_MAP.get(tool_name)
-                if selected_tool:
+                if tool_name in TOOLS_MAP:
                     try:
-                        tool_output = await selected_tool.ainvoke(tool_args)
+                        tool_output = await self._invoke_tool(tool_name, tool_args, session_id)
                         if tool_name == "delete_table_reservation":
                             self.pending_cancellations[session_id] = dict(tool_args)
                     except Exception as e:
                         if tool_name == "delete_table_reservation":
                             self.pending_cancellations.pop(session_id, None)
-                        tool_output = f"Error al ejecutar la herramienta {tool_name}: {str(e)}"
+                        if tool_name == "get_table_reservation":
+                            tool_output = "No pude verificar la reserva con esos datos."
+                        else:
+                            tool_output = f"Error al ejecutar la herramienta {tool_name}: {str(e)}"
                 else:
                     tool_output = f"Herramienta '{tool_name}' no encontrada."
                 
@@ -142,6 +161,34 @@ class RAGChatbotRunner:
         history.add_ai_message(final_output)
         
         return {"output": final_output}
+
+    async def _invoke_tool(
+        self,
+        tool_name: str,
+        tool_args: dict,
+        session_id: str,
+    ) -> str:
+        arguments = dict(tool_args)
+        if tool_name == "get_table_reservation":
+            self.verified_reservations.pop(session_id, None)
+            reservation = await get_verified_table_reservation(**arguments)
+            if reservation.status == "confirmed":
+                self.verified_reservations[session_id] = (
+                    reservation.reservation_id,
+                    reservation.date.isoformat(),
+                )
+            return format_verified_table_reservation(reservation)
+        if tool_name == "edit_table_reservation":
+            self.verified_reservations.pop(session_id, None)
+        if tool_name == "get_weather_forecast" and arguments.get("date") is None:
+            verified = self.verified_reservations.get(session_id)
+            if verified is not None:
+                arguments["date"] = verified[1]
+
+        selected_tool = TOOLS_MAP.get(tool_name)
+        if selected_tool is None:
+            raise ValueError(f"Tool '{tool_name}' is not available.")
+        return await selected_tool.ainvoke(arguments)
 
     @staticmethod
     def _confirmation_answer(message: str) -> str | None:

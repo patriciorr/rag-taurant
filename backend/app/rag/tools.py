@@ -10,6 +10,7 @@ from app.models.menu import Allergen
 from app.models.reservation import ReservationContact, ReservationCreate, ReservationUpdate, ReservationInDB
 from app.service.menu import menu_service
 from app.service.reservation import reservation_service
+from app.service.weather import get_restaurant_weather
 
 client = MongoClient(settings.MONGODB_URI)
 db = client[settings.DB_NAME]
@@ -140,22 +141,38 @@ def make_table_reservation(customer_name: str, email: str, phone: str, date: str
     except Exception as e:
         return f"❌ Error de validación al crear la reserva: {str(e)}"
 
-@tool
-def get_table_reservation(identifier: str) -> str:
-    """Obtiene los detalles de una reserva existente mediante su ID de reserva, correo electrónico o teléfono."""
-    reservation = _find_reservation(identifier)
-    if not reservation:
-        return f"No se encontró ninguna reserva asociada al identificador '{identifier}'."
-    
+async def get_verified_table_reservation(
+    reservation_id: str,
+    email: str,
+    phone: str,
+) -> ReservationInDB:
+    contact = ReservationContact(email=email, phone=phone)
+    return await reservation_service.get_reservation(reservation_id, contact)
+
+
+def format_verified_table_reservation(reservation: ReservationInDB) -> str:
+    status = "activa" if reservation.status == "confirmed" else "cancelada"
     return (
-        f"📋 Detalle de la Reserva ({reservation['reservation_id']}):\n"
-        f"- Cliente: {reservation['customer_name']}\n"
-        f"- Email: {reservation['email']}\n"
-        f"- Teléfono: {reservation['phone']}\n"
-        f"- Fecha: {reservation['date']} a las {reservation['time']}\n"
-        f"- Comensales: {reservation['guests']} personas\n"
-        f"- Estado: {reservation['status']}"
+        f"Reserva verificada ({status}): {reservation.reservation_id}.\n"
+        f"- Cliente: {reservation.customer_name}\n"
+        f"- Fecha: {reservation.date.isoformat()} a las "
+        f"{reservation.time.isoformat(timespec='minutes')}\n"
+        f"- Comensales: {reservation.guests}"
     )
+
+
+@tool
+async def get_table_reservation(reservation_id: str, email: str, phone: str) -> str:
+    """Consulta una reserva verificando su código, correo electrónico y teléfono."""
+    reservation = await get_verified_table_reservation(reservation_id, email, phone)
+    return format_verified_table_reservation(reservation)
+
+
+@tool
+def get_weather_forecast(date: Optional[str] = None) -> str:
+    """Consulta la previsión meteorológica del restaurante. Indica date en formato YYYY-MM-DD para una fecha concreta; omítela para consultar el horizonte disponible."""
+    return get_restaurant_weather(date)
+
 
 @tool
 def edit_table_reservation(
@@ -210,6 +227,7 @@ async def delete_table_reservation(reservation_id: str, email: str, phone: str) 
 bot_tools = [
     search_menu,
     search_info,
+    get_weather_forecast,
     make_table_reservation,
     get_table_reservation,
     edit_table_reservation,

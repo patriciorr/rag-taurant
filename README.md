@@ -35,7 +35,7 @@ The application features a sleek **React + Material UI** frontend served through
 - 🔍 **Vector Search & RAG:** Semantic search over menu items and restaurant information using **ChromaDB** embeddings.
 - 🛠️ **Autonomous Agent Tools:**
   - 📖 `search_menu_and_info`: Performs vector similarity search for dish recommendations and details.
-  - ☀️ `get_weather_forecast`: Retrieves live weather information for outdoor terrace seating decisions.
+  - ☀️ `get_weather_forecast`: Retrieves the Open-Meteo forecast for the restaurant's configured location, covering today and the next 13 days.
   - 📅 `make_table_reservation`: Handles table reservations with date, time, and guest count validation.
 - ⚡ **Asynchronous REST API:** Lightweight FastAPI backend with CORS middleware and Pydantic schema validations.
 - 🐳 **Full-Stack Docker Orchestration:** Complete multi-container setup (Nginx Frontend, FastAPI Backend, Ollama Engine) managed via Docker Compose.
@@ -219,7 +219,7 @@ The integration tests use a unique `rag_taurant_test_*` database per test and dr
 ### Agent Autonomous Tools
 
 1. **`search_menu_and_info(query: str)`**: Queries ChromaDB vector store for relevant menu items, ingredients, prices, and dietary details.
-2. **`get_weather_forecast(date_time: str)`**: Simulates/fetches weather conditions to advise customers regarding terrace seating.
+2. **`get_weather_forecast(date: str | None)`**: Retrieves the 14-day Open-Meteo forecast or a specific available date; a verified active reservation date can provide the context.
 3. **`make_table_reservation(customer_name, date, time, guests)`**: Formats and confirms table booking details.
 
 ---

@@ -1,39 +1,129 @@
-# app/services/weather.py
+import logging
+import math
+from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
 import requests
-#from app.core.config import settings
 
-def get_restaurant_weather() -> str:
-    """Consults the real-time weather forecast at the restaurant's coordinates."""
+from app.core.config import settings
+
+logger = logging.getLogger(__name__)
+
+FORECAST_UNAVAILABLE = (
+    "No pude consultar la previsión meteorológica ahora. Inténtalo de nuevo más tarde."
+)
+FORECAST_INCOMPLETE = (
+    "La previsión meteorológica no está disponible temporalmente para todas las fechas solicitadas."
+)
+
+DAILY_FIELDS = (
+    "temperature_2m_max",
+    "temperature_2m_min",
+    "precipitation_probability_max",
+    "wind_speed_10m_max",
+)
+FIELD_LABELS = (
+    ("temperature_2m_max", "máxima", "°C"),
+    ("temperature_2m_min", "mínima", "°C"),
+    ("precipitation_probability_max", "probabilidad de precipitación", "%"),
+    ("wind_speed_10m_max", "viento máximo", "km/h"),
+)
+
+
+def _number(value: object) -> bool:
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return False
     try:
-        url = (
-            f"https://api.open-meteo.com/v1/forecast?"
-            f"forecast_days=14&"
-            f"latitude={37.3828}&longitude={-5.9732}"
-            f"&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&timezone=auto"
-        )
+        return math.isfinite(value)
+    except OverflowError:
+        return False
 
-        # Example API call for reference:
-        # https://api.open-meteo.com/v1/forecast?latitude=37.3828&longitude=-5.9732&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&timezone=auto
-        response = requests.get(url, timeout=5)
-        response.raise_for_status()
-        data = response.json().get("daily", {})
-        
-        temp_max = data.get("temperature_2m_max", ["N/D"])
-        temp_min = data.get("temperature_2m_min", ["N/D"])
-        precip = data.get("precipitation_probability_max", ["N/D"])
-        wind = data.get("wind_speed_10m_max", ["N/D"])
-        forecast_days = data.get("time", ["N/D"])
-        
-        return (
-            f"El tiempo actual en la ubicación del restaurante: "
-            f"Día: {forecast_days[0]} - Temperatura máxima: {temp_max[0]}°C - Temperatura mínima: {temp_min[0]}°C - Probabilidad de precipitación: {precip[0]}% - Viento: {wind[0]} km/h."
-            f"El tiempo en los próximos días: "
-            f"Día: {forecast_days[1]} - Temperatura máxima: {temp_max[1]}°C - Temperatura mínima: {temp_min[1]}°C - Probabilidad de precipitación: {precip[1]}% - Viento: {wind[1]} km/h."
-            f"Día: {forecast_days[2]} - Temperatura máxima: {temp_max[2]}°C - Temperatura mínima: {temp_min[2]}°C - Probabilidad de precipitación: {precip[2]}% - Viento: {wind[2]} km/h."
-            f"Día: {forecast_days[3]} - Temperatura máxima: {temp_max[3]}°C - Temperatura mínima: {temp_min[3]}°C - Probabilidad de precipitación: {precip[3]}% - Viento: {wind[3]} km/h."
-            f"Día: {forecast_days[4]} - Temperatura máxima: {temp_max[4]}°C - Temperatura mínima: {temp_min[4]}°C - Probabilidad de precipitación: {precip[4]}% - Viento: {wind[4]} km/h."
-            f"Día: {forecast_days[5]} - Temperatura máxima: {temp_max[5]}°C - Temperatura mínima: {temp_min[5]}°C - Probabilidad de precipitación: {precip[5]}% - Viento: {wind[5]} km/h."
-            f"Día: {forecast_days[6]} - Temperatura máxima: {temp_max[6]}°C - Temperatura mínima: {temp_min[6]}°C - Probabilidad de precipitación: {precip[6]}% - Viento: {wind[6]} km/h."
+
+def get_restaurant_weather(
+    requested_date: str | None = None,
+    *,
+    today: date | None = None,
+) -> str:
+    if requested_date is not None:
+        try:
+            parsed_date = date.fromisoformat(requested_date)
+        except (TypeError, ValueError):
+            return "Indícame una fecha válida en formato YYYY-MM-DD."
+        if parsed_date.isoformat() != requested_date:
+            return "Indícame una fecha válida en formato YYYY-MM-DD."
+    else:
+        parsed_date = None
+
+    try:
+        response = requests.get(
+            "https://api.open-meteo.com/v1/forecast",
+            params={
+                "latitude": settings.RESTAURANT_LAT,
+                "longitude": settings.RESTAURANT_LON,
+                "daily": ",".join(DAILY_FIELDS),
+                "forecast_days": 14,
+                "timezone": "auto",
+            },
+            timeout=5,
         )
-    except Exception as e:
-        return f"No se pudo obtener el clima en tiempo real. Detalle: {str(e)}"
+        response.raise_for_status()
+        data = response.json()
+    except (requests.RequestException, ValueError):
+        logger.exception("Open-Meteo forecast request failed.")
+        return FORECAST_UNAVAILABLE
+
+    if not isinstance(data, dict) or not isinstance(data.get("daily"), dict):
+        logger.warning("Open-Meteo returned an incomplete forecast response.")
+        return FORECAST_INCOMPLETE
+
+    daily = data["daily"]
+    days = daily.get("time")
+    values = {field: daily.get(field) for field in DAILY_FIELDS}
+    if (
+        not isinstance(days, list)
+        or len(days) != 14
+        or any(not isinstance(day, str) for day in days)
+        or any(not isinstance(items, list) or len(items) != 14 for items in values.values())
+        or any(not _number(value) for items in values.values() for value in items)
+    ):
+        logger.warning("Open-Meteo returned an incomplete 14-day forecast.")
+        return FORECAST_INCOMPLETE
+
+    try:
+        forecast_dates = [date.fromisoformat(day) for day in days]
+        if any(parsed.isoformat() != original for parsed, original in zip(forecast_dates, days)):
+            raise ValueError("Forecast date is not in ISO format.")
+        timezone = data.get("timezone")
+        if not isinstance(timezone, str):
+            raise ValueError("Forecast timezone is missing.")
+        forecast_today = today or datetime.now(ZoneInfo(timezone)).date()
+    except (TypeError, ValueError, ZoneInfoNotFoundError):
+        logger.warning("Open-Meteo returned invalid dates or timezone metadata.")
+        return FORECAST_INCOMPLETE
+
+    expected_dates = [forecast_today + timedelta(days=offset) for offset in range(14)]
+    if forecast_dates != expected_dates:
+        logger.warning("Open-Meteo forecast does not cover the expected 14-day horizon.")
+        return FORECAST_INCOMPLETE
+
+    if parsed_date is not None:
+        if parsed_date not in forecast_dates:
+            return (
+                f"No hay previsión disponible para {parsed_date.isoformat()}. "
+                f"El horizonte disponible es del {forecast_dates[0].isoformat()} "
+                f"al {forecast_dates[-1].isoformat()}."
+            )
+        indices = [forecast_dates.index(parsed_date)]
+    else:
+        indices = list(range(14))
+
+    forecast_lines = []
+    for index in indices:
+        details = [
+            f"{label}: {values[field][index]:g}{unit}"
+            for field, label, unit in FIELD_LABELS
+        ]
+        forecast_lines.append(f"{days[index]}: " + "; ".join(details) + ".")
+    return "Previsión meteorológica para la ubicación del restaurante:\n" + "\n".join(
+        forecast_lines
+    )
