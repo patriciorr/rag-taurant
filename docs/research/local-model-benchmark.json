@@ -1,0 +1,1287 @@
+{
+  "dataset": "evaluation/local_model_evaluation.json",
+  "dataset_version": 1,
+  "reference_date": "2026-10-05",
+  "timestamp": "2026-10-05T13:34:09.820862+00:00",
+  "host": {
+    "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+    "processor": "x86_64",
+    "memory_total_mib": 24032,
+    "gpu": "NVIDIA GeForce RTX 5070 Ti Laptop GPU"
+  },
+  "ollama": {
+    "version": "0.34.0",
+    "container": "ollama_restaurant",
+    "base_url": "http://localhost:11435",
+    "num_ctx": 4096,
+    "temperature": 0
+  },
+  "runs": [
+    {
+      "kind": "generation_and_tools",
+      "model": "qwen3:8b",
+      "hardware": "cpu",
+      "peak_container_memory_mib": 12655.2,
+      "peak_container_working_set_mib": 6998.7,
+      "peak_gpu_memory_mib": null,
+      "cases": [
+        {
+          "id": "menu-vegan",
+          "correct_tool": true,
+          "valid_arguments": true,
+          "grounded_response": true,
+          "required_terms_present": true,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 43.095,
+          "tool_call_latency_seconds": 30.641,
+          "prompt_tokens": 745,
+          "generated_tokens": 34,
+          "tool_calls": [
+            {
+              "id": "call_elqo8tqq",
+              "function": {
+                "index": 0,
+                "name": "search_menu",
+                "arguments": {
+                  "available_only": true,
+                  "query": "entrante",
+                  "vegan_only": true
+                }
+              }
+            }
+          ],
+          "response": "El entrante vegano y disponible que puedes pedir es el **Gazpacho Andaluz Tradicional**, que cuesta 8,50 €. Está hecho con tomate, pimiento, pepino y aceite de oliva. No tiene alérgenos registrados, aunque la carta no menciona información sobre contaminación cruzada. ¿Quieres pedirlo?"
+        },
+        {
+          "id": "allergen-paella",
+          "correct_tool": true,
+          "valid_arguments": false,
+          "grounded_response": true,
+          "required_terms_present": true,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 14.362,
+          "tool_call_latency_seconds": 6.763,
+          "prompt_tokens": 756,
+          "generated_tokens": 47,
+          "tool_calls": [
+            {
+              "id": "call_4lc5szc6",
+              "function": {
+                "index": 0,
+                "name": "search_menu",
+                "arguments": {
+                  "query": "Paella de Mariscos del Señorito",
+                  "exclude_allergens": [
+                    "pescado",
+                    "mariscos"
+                  ]
+                }
+              }
+            }
+          ],
+          "response": "La Paella de Mariscos del Señorito contiene **crustáceos** y **pescado**. No se menciona información sobre contaminación cruzada en la carta."
+        },
+        {
+          "id": "weather-date",
+          "correct_tool": true,
+          "valid_arguments": true,
+          "grounded_response": true,
+          "required_terms_present": true,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 22.889,
+          "tool_call_latency_seconds": 14.369,
+          "prompt_tokens": 757,
+          "generated_tokens": 31,
+          "tool_calls": [
+            {
+              "id": "call_9e9z0nqy",
+              "function": {
+                "index": 0,
+                "name": "get_weather_forecast",
+                "arguments": {
+                  "date": "2026-10-18"
+                }
+              }
+            }
+          ],
+          "response": "Para el 18 de octubre de 2026, la previsión meteorológica indica una temperatura máxima de 23 °C y una mínima de 15 °C, con una probabilidad del 10 % de precipitación."
+        },
+        {
+          "id": "restaurant-no-evidence",
+          "correct_tool": false,
+          "valid_arguments": false,
+          "grounded_response": false,
+          "required_terms_present": false,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 2.537,
+          "tool_call_latency_seconds": 2.537,
+          "prompt_tokens": 744,
+          "generated_tokens": 18,
+          "tool_calls": [],
+          "response": "No, los perros no están permitidos en la terraza del restaurante."
+        },
+        {
+          "id": "reservation-create-simulated",
+          "correct_tool": true,
+          "valid_arguments": true,
+          "grounded_response": true,
+          "required_terms_present": true,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 24.951,
+          "tool_call_latency_seconds": 12.804,
+          "prompt_tokens": 789,
+          "generated_tokens": 80,
+          "tool_calls": [
+            {
+              "id": "call_jql403c7",
+              "function": {
+                "index": 0,
+                "name": "make_table_reservation",
+                "arguments": {
+                  "guests": 2,
+                  "customer_name": "Ana Ejemplo",
+                  "email": "ana@example.invalid",
+                  "phone": "+34000000000",
+                  "date": "2026-10-18",
+                  "time": "20:00"
+                }
+              }
+            }
+          ],
+          "response": "La reserva para Ana Ejemplo está preparada para el 18 de octubre de 2026 a las 20:00 para dos personas. Sin embargo, no se ha confirmado ni guardado ninguna reserva; es necesario pedir confirmación explícita. ¿Desea confirmar esta reserva?"
+        },
+        {
+          "id": "reservation-lookup-simulated",
+          "correct_tool": true,
+          "valid_arguments": true,
+          "grounded_response": true,
+          "required_terms_present": true,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 19.688,
+          "tool_call_latency_seconds": 8.169,
+          "prompt_tokens": 762,
+          "generated_tokens": 51,
+          "tool_calls": [
+            {
+              "id": "call_l0h5hruc",
+              "function": {
+                "index": 0,
+                "name": "get_table_reservation",
+                "arguments": {
+                  "email": "ana@example.invalid",
+                  "phone": "+34000000000",
+                  "reservation_id": "R-TEST-42"
+                }
+              }
+            }
+          ],
+          "response": "La reserva R-TEST-42 está confirmada para el 2026-10-18 a las 20:00 para 2 personas. El correo asociado es ana@example.invalid y el teléfono +34000000000. ¿Desea realizar alguna acción con esta reserva, como modificar o cancelar?"
+        },
+        {
+          "id": "reservation-edit-simulated",
+          "correct_tool": true,
+          "valid_arguments": true,
+          "grounded_response": false,
+          "required_terms_present": false,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 20.04,
+          "tool_call_latency_seconds": 9.802,
+          "prompt_tokens": 776,
+          "generated_tokens": 66,
+          "tool_calls": [
+            {
+              "id": "call_w7ey37eb",
+              "function": {
+                "index": 0,
+                "name": "edit_table_reservation",
+                "arguments": {
+                  "reservation_id": "R-TEST-42",
+                  "email": "ana@example.invalid",
+                  "phone": "+34000000000",
+                  "date": "2026-10-17"
+                }
+              }
+            }
+          ],
+          "response": "La modificación de la reserva **R-TEST-42** para el **17 de octubre de 2026** está preparada, pero aún no se ha aplicado. Por favor, confirma si deseas proceder con el cambio."
+        },
+        {
+          "id": "reservation-cancel-simulated",
+          "correct_tool": true,
+          "valid_arguments": true,
+          "grounded_response": false,
+          "required_terms_present": false,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 13.761,
+          "tool_call_latency_seconds": 7.266,
+          "prompt_tokens": 762,
+          "generated_tokens": 51,
+          "tool_calls": [
+            {
+              "id": "call_ea8u0zxv",
+              "function": {
+                "index": 0,
+                "name": "delete_table_reservation",
+                "arguments": {
+                  "reservation_id": "R-TEST-42",
+                  "email": "ana@example.invalid",
+                  "phone": "+34000000000"
+                }
+              }
+            }
+          ],
+          "response": "La cancelación de la reserva R-TEST-42 está preparada, pero aún no se ha aplicado. Por favor, confirma si deseas proceder con la cancelación."
+        },
+        {
+          "id": "out-of-scope",
+          "correct_tool": true,
+          "valid_arguments": true,
+          "grounded_response": true,
+          "required_terms_present": true,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 9.118,
+          "tool_call_latency_seconds": 9.118,
+          "prompt_tokens": 747,
+          "generated_tokens": 67,
+          "tool_calls": [],
+          "response": "Lo siento, pero no puedo ayudarte con problemas técnicos de coches. Mi función es proporcionar información y asistencia relacionada con el restaurante RAGtaurant. Si tienes alguna pregunta sobre nuestros platos, servicios, reservas o información del restaurante, estaré encantado de ayudarte."
+        }
+      ],
+      "tool_accuracy": 0.8889,
+      "argument_accuracy": 0.7778,
+      "grounded_response_rate": 0.6667,
+      "mean_latency_seconds": 18.938
+    },
+    {
+      "kind": "generation_and_tools",
+      "model": "llama3.2:latest",
+      "hardware": "cpu",
+      "peak_container_memory_mib": 11417.3,
+      "peak_container_working_set_mib": 3990.3,
+      "peak_gpu_memory_mib": null,
+      "cases": [
+        {
+          "id": "menu-vegan",
+          "correct_tool": true,
+          "valid_arguments": false,
+          "grounded_response": false,
+          "required_terms_present": false,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 21.498,
+          "tool_call_latency_seconds": 19.026,
+          "prompt_tokens": 775,
+          "generated_tokens": 16,
+          "tool_calls": [
+            {
+              "id": "call_sxcwvkxi",
+              "function": {
+                "index": 0,
+                "name": "search_menu",
+                "arguments": {
+                  "query": "entrada vegano disponible"
+                }
+              }
+            }
+          ],
+          "response": "Excelente elección. ¿Quieres pedir el gazpacho andaluz tradicional o prefieres buscar otra opción?"
+        },
+        {
+          "id": "allergen-paella",
+          "correct_tool": true,
+          "valid_arguments": false,
+          "grounded_response": true,
+          "required_terms_present": true,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 17.77,
+          "tool_call_latency_seconds": 7.518,
+          "prompt_tokens": 786,
+          "generated_tokens": 47,
+          "tool_calls": [
+            {
+              "id": "call_edv5w6ej",
+              "function": {
+                "index": 0,
+                "name": "search_menu",
+                "arguments": {
+                  "query": "Paella de Mariscos del Señorito",
+                  "available_only": false,
+                  "exclude_allergens": null,
+                  "vegan_only": false,
+                  "vegetarian_only": false
+                }
+              }
+            }
+          ],
+          "response": "¡Excelente! Entonces, para confirmar, la Paella de Mariscos del Señorito del Señorito contiene alérgenos como:\n\n* Crustáceos (como camarones, langostinos, etc.)\n* Pescado (varios tipos de pescado, como merluza, etc.)\n\nEs importante tener en cuenta que estos ingredientes pueden variar dependiendo de la disponibilidad y la temporada. Si tienes alguna alergia o restricción alimentaria, te recomiendo que hables con nuestro personal de atención al cliente para obtener más información y asegurarte de que tu experiencia en el restaurante sea segura y agradable. ¿Quieres hacer una reserva o solicitar más información?"
+        },
+        {
+          "id": "weather-date",
+          "correct_tool": true,
+          "valid_arguments": false,
+          "grounded_response": true,
+          "required_terms_present": true,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 7.314,
+          "tool_call_latency_seconds": 1.581,
+          "prompt_tokens": 785,
+          "generated_tokens": 22,
+          "tool_calls": [
+            {
+              "id": "call_mgycmce5",
+              "function": {
+                "index": 0,
+                "name": "get_weather_forecast",
+                "arguments": {
+                  "date": "18 de octubre de 2026"
+                }
+              }
+            }
+          ],
+          "response": "Entendido. La previsión para el 18 de octubre de 2026 en el restaurante es la siguiente:\n\n* Temperatura máxima: 23 °C\n* Temperatura mínima: 15 °C\n* Probabilidad de precipitación: 10 %\n\n¿Necesita hacer una reserva o solicitar más información?"
+        },
+        {
+          "id": "restaurant-no-evidence",
+          "correct_tool": false,
+          "valid_arguments": false,
+          "grounded_response": false,
+          "required_terms_present": false,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 6.662,
+          "tool_call_latency_seconds": 6.662,
+          "prompt_tokens": 774,
+          "generated_tokens": 42,
+          "tool_calls": [
+            {
+              "id": "call_xd3pwik9",
+              "function": {
+                "index": 0,
+                "name": "search_menu",
+                "arguments": {
+                  "vegan_only": false,
+                  "vegetarian_only": false,
+                  "query": "perros en la terraza",
+                  "available_only": false,
+                  "exclude_allergens": null
+                }
+              }
+            }
+          ],
+          "response": ""
+        },
+        {
+          "id": "reservation-create-simulated",
+          "correct_tool": true,
+          "valid_arguments": false,
+          "grounded_response": false,
+          "required_terms_present": false,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 7.599,
+          "tool_call_latency_seconds": 3.539,
+          "prompt_tokens": 808,
+          "generated_tokens": 51,
+          "tool_calls": [
+            {
+              "id": "call_16z4sond",
+              "function": {
+                "index": 0,
+                "name": "make_table_reservation",
+                "arguments": {
+                  "email": "ana@example.invalid",
+                  "phone": "+34000000000",
+                  "date": "2026-10-18",
+                  "guests": "2",
+                  "time": "20:00",
+                  "customer_name": "Ana Ejemplo"
+                }
+              }
+            }
+          ],
+          "response": "Para confirmar la reserva, por favor, confirme que desea realizar la reserva para Ana Ejemplo el 18 de octubre de 2026 a las 20:00 para 2 personas. ¿Necesita ayuda con algo más?"
+        },
+        {
+          "id": "reservation-lookup-simulated",
+          "correct_tool": true,
+          "valid_arguments": true,
+          "grounded_response": true,
+          "required_terms_present": true,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 8.73,
+          "tool_call_latency_seconds": 1.915,
+          "prompt_tokens": 785,
+          "generated_tokens": 33,
+          "tool_calls": [
+            {
+              "id": "call_m8v3xr7j",
+              "function": {
+                "index": 0,
+                "name": "get_table_reservation",
+                "arguments": {
+                  "email": "ana@example.invalid",
+                  "phone": "+34000000000",
+                  "reservation_id": "R-TEST-42"
+                }
+              }
+            }
+          ],
+          "response": "La reserva R-TEST-42 se ha verificado. La información es la siguiente:\n\n* Fecha: 2026-10-18\n* Hora: 20:00\n* Número de personas: 2\n* Correo electrónico: ana@example.invalid\n* Teléfono: +34000000000\n\nLa reserva sigue pendiente. ¿Desea realizar una modificación, cancelación o confirmación adicional?"
+        },
+        {
+          "id": "reservation-edit-simulated",
+          "correct_tool": true,
+          "valid_arguments": true,
+          "grounded_response": true,
+          "required_terms_present": true,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 6.484,
+          "tool_call_latency_seconds": 3.088,
+          "prompt_tokens": 795,
+          "generated_tokens": 51,
+          "tool_calls": [
+            {
+              "id": "call_atmkb8zp",
+              "function": {
+                "index": 0,
+                "name": "edit_table_reservation",
+                "arguments": {
+                  "guests": null,
+                  "time": null,
+                  "reservation_id": "R-TEST-42",
+                  "date": "2026-10-17",
+                  "email": "ana@example.invalid",
+                  "phone": "+34000000000"
+                }
+              }
+            }
+          ],
+          "response": "Lo siento, pero no puedo realizar cambios en reservas existentes sin confirmación explícita. ¿Podrías confirmar que deseas realizar este cambio?"
+        },
+        {
+          "id": "reservation-cancel-simulated",
+          "correct_tool": true,
+          "valid_arguments": true,
+          "grounded_response": true,
+          "required_terms_present": true,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 9.665,
+          "tool_call_latency_seconds": 6.121,
+          "prompt_tokens": 785,
+          "generated_tokens": 33,
+          "tool_calls": [
+            {
+              "id": "call_hp42afe6",
+              "function": {
+                "index": 0,
+                "name": "delete_table_reservation",
+                "arguments": {
+                  "reservation_id": "R-TEST-42",
+                  "email": "ana@example.invalid",
+                  "phone": "+34000000000"
+                }
+              }
+            }
+          ],
+          "response": "Lo siento, pero no puedo cancelar la reserva R-TEST-42 de ana@example.invalid con teléfono +34000000000 sin confirmación explícita. ¿Podrías confirmar que deseas cancelar la reserva?"
+        },
+        {
+          "id": "out-of-scope",
+          "correct_tool": true,
+          "valid_arguments": true,
+          "grounded_response": false,
+          "required_terms_present": false,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 9.007,
+          "tool_call_latency_seconds": 9.007,
+          "prompt_tokens": 777,
+          "generated_tokens": 76,
+          "tool_calls": [],
+          "response": "No puedo proporcionar asistencia técnica específica para reparar motores de coches. Sin embargo, puedo ofrecerte información general sobre cómo realizar una inspección básica de motor y qué pasos podrías considerar para diagnosticar problemas comunes. \n\nPara obtener asistencia más precisa y específica, te recomendaría consultar un mechanicólogo profesional."
+        }
+      ],
+      "tool_accuracy": 0.8889,
+      "argument_accuracy": 0.4444,
+      "grounded_response_rate": 0.5556,
+      "mean_latency_seconds": 10.525
+    },
+    {
+      "model": "bge-m3",
+      "hardware": "cpu",
+      "dimensions": 1024,
+      "input_count": 12,
+      "elapsed_seconds": 3.32,
+      "milliseconds_per_input": 276.66,
+      "recall_at_3": 0.8333,
+      "mrr": 0.8667,
+      "unanswerable_false_positive": false,
+      "cases": [
+        {
+          "id": "dish-gazpacho-ingredients",
+          "recall_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "top_document_id": "gazpacho",
+          "top_similarity": 0.6004,
+          "false_positive": false
+        },
+        {
+          "id": "dish-vegan",
+          "recall_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "top_document_id": "hamburguesa-vegana",
+          "top_similarity": 0.5958,
+          "false_positive": false
+        },
+        {
+          "id": "dish-allergens",
+          "recall_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "top_document_id": "paella",
+          "top_similarity": 0.6229,
+          "false_positive": false
+        },
+        {
+          "id": "dish-dessert",
+          "recall_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "top_document_id": "tarta-queso",
+          "top_similarity": 0.5602,
+          "false_positive": false
+        },
+        {
+          "id": "dish-price",
+          "recall_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "top_document_id": "croquetas",
+          "top_similarity": 0.6564,
+          "false_positive": false
+        },
+        {
+          "id": "dish-synonym",
+          "recall_at_3": 0.0,
+          "reciprocal_rank": 0.2,
+          "top_document_id": "hamburguesa-vegana",
+          "top_similarity": 0.4682,
+          "false_positive": false
+        },
+        {
+          "id": "unanswerable-restaurant-policy",
+          "recall_at_3": null,
+          "reciprocal_rank": 0.0,
+          "top_document_id": "paella",
+          "top_similarity": 0.3767,
+          "false_positive": false
+        }
+      ],
+      "kind": "retrieval",
+      "peak_container_memory_mib": 10961.2,
+      "peak_container_working_set_mib": 2441.1,
+      "peak_gpu_memory_mib": null
+    },
+    {
+      "model": "nomic-embed-text",
+      "hardware": "cpu",
+      "dimensions": 768,
+      "input_count": 12,
+      "elapsed_seconds": 0.96,
+      "milliseconds_per_input": 79.97,
+      "recall_at_3": 0.75,
+      "mrr": 0.7639,
+      "unanswerable_false_positive": true,
+      "cases": [
+        {
+          "id": "dish-gazpacho-ingredients",
+          "recall_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "top_document_id": "gazpacho",
+          "top_similarity": 0.6809,
+          "false_positive": false
+        },
+        {
+          "id": "dish-vegan",
+          "recall_at_3": 0.5,
+          "reciprocal_rank": 0.3333333333333333,
+          "top_document_id": "tarta-queso",
+          "top_similarity": 0.8091,
+          "false_positive": false
+        },
+        {
+          "id": "dish-allergens",
+          "recall_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "top_document_id": "paella",
+          "top_similarity": 0.6817,
+          "false_positive": false
+        },
+        {
+          "id": "dish-dessert",
+          "recall_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "top_document_id": "tarta-queso",
+          "top_similarity": 0.6445,
+          "false_positive": false
+        },
+        {
+          "id": "dish-price",
+          "recall_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "top_document_id": "croquetas",
+          "top_similarity": 0.6714,
+          "false_positive": false
+        },
+        {
+          "id": "dish-synonym",
+          "recall_at_3": 0.0,
+          "reciprocal_rank": 0.25,
+          "top_document_id": "hamburguesa-vegana",
+          "top_similarity": 0.6282,
+          "false_positive": false
+        },
+        {
+          "id": "unanswerable-restaurant-policy",
+          "recall_at_3": null,
+          "reciprocal_rank": 0.0,
+          "top_document_id": "tarta-queso",
+          "top_similarity": 0.6078,
+          "false_positive": true
+        }
+      ],
+      "kind": "retrieval",
+      "peak_container_memory_mib": 10178.9,
+      "peak_container_working_set_mib": 1447.7,
+      "peak_gpu_memory_mib": null
+    },
+    {
+      "kind": "generation_and_tools",
+      "model": "qwen3:8b",
+      "hardware": "gpu",
+      "peak_container_memory_mib": 11170.3,
+      "peak_container_working_set_mib": 6791.2,
+      "peak_gpu_memory_mib": 7041,
+      "cases": [
+        {
+          "id": "menu-vegan",
+          "correct_tool": true,
+          "valid_arguments": true,
+          "grounded_response": true,
+          "required_terms_present": true,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 12.148,
+          "tool_call_latency_seconds": 9.707,
+          "prompt_tokens": 745,
+          "generated_tokens": 34,
+          "tool_calls": [
+            {
+              "id": "call_5259ke53",
+              "function": {
+                "index": 0,
+                "name": "search_menu",
+                "arguments": {
+                  "query": "entrante",
+                  "vegan_only": true,
+                  "available_only": true
+                }
+              }
+            }
+          ],
+          "response": "El entrante vegano y disponible que puedes pedir es el **Gazpacho Andaluz Tradicional**, que cuesta 8,50 €. Está hecho con tomate, pimiento, pepino y aceite de oliva. No tiene alérgenos registrados, aunque la carta no menciona información sobre contaminación cruzada."
+        },
+        {
+          "id": "allergen-paella",
+          "correct_tool": true,
+          "valid_arguments": false,
+          "grounded_response": true,
+          "required_terms_present": true,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 2.811,
+          "tool_call_latency_seconds": 1.497,
+          "prompt_tokens": 756,
+          "generated_tokens": 47,
+          "tool_calls": [
+            {
+              "id": "call_qt7xf513",
+              "function": {
+                "index": 0,
+                "name": "search_menu",
+                "arguments": {
+                  "query": "Paella de Mariscos del Señorito",
+                  "exclude_allergens": [
+                    "pescado",
+                    "mariscos"
+                  ]
+                }
+              }
+            }
+          ],
+          "response": "La Paella de Mariscos del Señorito contiene crustáceos y pescado. No se menciona información sobre contaminación cruzada en la carta."
+        },
+        {
+          "id": "weather-date",
+          "correct_tool": true,
+          "valid_arguments": true,
+          "grounded_response": true,
+          "required_terms_present": true,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 3.402,
+          "tool_call_latency_seconds": 1.501,
+          "prompt_tokens": 757,
+          "generated_tokens": 31,
+          "tool_calls": [
+            {
+              "id": "call_rydrkzg2",
+              "function": {
+                "index": 0,
+                "name": "get_weather_forecast",
+                "arguments": {
+                  "date": "2026-10-18"
+                }
+              }
+            }
+          ],
+          "response": "Para el 18 de octubre de 2026, la previsión meteorológica indica una temperatura máxima de 23 °C y una mínima de 15 °C, con una probabilidad del 10 % de precipitación."
+        },
+        {
+          "id": "restaurant-no-evidence",
+          "correct_tool": false,
+          "valid_arguments": false,
+          "grounded_response": false,
+          "required_terms_present": false,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 0.612,
+          "tool_call_latency_seconds": 0.612,
+          "prompt_tokens": 744,
+          "generated_tokens": 18,
+          "tool_calls": [],
+          "response": "No, los perros no están permitidos en la terraza del restaurante."
+        },
+        {
+          "id": "reservation-create-simulated",
+          "correct_tool": true,
+          "valid_arguments": true,
+          "grounded_response": false,
+          "required_terms_present": false,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 4.719,
+          "tool_call_latency_seconds": 2.488,
+          "prompt_tokens": 789,
+          "generated_tokens": 80,
+          "tool_calls": [
+            {
+              "id": "call_p653cbur",
+              "function": {
+                "index": 0,
+                "name": "make_table_reservation",
+                "arguments": {
+                  "customer_name": "Ana Ejemplo",
+                  "email": "ana@example.invalid",
+                  "phone": "+34000000000",
+                  "date": "2026-10-18",
+                  "time": "20:00",
+                  "guests": 2
+                }
+              }
+            }
+          ],
+          "response": "La reserva para Ana Ejemplo el 18 de octubre de 2026 a las 20:00 para dos personas ha sido preparada, pero aún no está confirmada. Por favor, confirma la reserva para que se pueda proceder con la asignación de mesa."
+        },
+        {
+          "id": "reservation-lookup-simulated",
+          "correct_tool": true,
+          "valid_arguments": true,
+          "grounded_response": true,
+          "required_terms_present": true,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 4.292,
+          "tool_call_latency_seconds": 1.702,
+          "prompt_tokens": 762,
+          "generated_tokens": 51,
+          "tool_calls": [
+            {
+              "id": "call_61xl18lf",
+              "function": {
+                "index": 0,
+                "name": "get_table_reservation",
+                "arguments": {
+                  "reservation_id": "R-TEST-42",
+                  "email": "ana@example.invalid",
+                  "phone": "+34000000000"
+                }
+              }
+            }
+          ],
+          "response": "La reserva R-TEST-42 está confirmada para el 2026-10-18 a las 20:00 para 2 personas. El correo asociado es ana@example.invalid y el teléfono +34000000000. ¿Desea realizar alguna modificación o cancelación?"
+        },
+        {
+          "id": "reservation-edit-simulated",
+          "correct_tool": true,
+          "valid_arguments": true,
+          "grounded_response": false,
+          "required_terms_present": false,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 4.123,
+          "tool_call_latency_seconds": 2.124,
+          "prompt_tokens": 776,
+          "generated_tokens": 66,
+          "tool_calls": [
+            {
+              "id": "call_icb9qji5",
+              "function": {
+                "index": 0,
+                "name": "edit_table_reservation",
+                "arguments": {
+                  "reservation_id": "R-TEST-42",
+                  "email": "ana@example.invalid",
+                  "phone": "+34000000000",
+                  "date": "2026-10-17"
+                }
+              }
+            }
+          ],
+          "response": "La modificación de la reserva **R-TEST-42** para el **17 de octubre de 2026** está preparada, pero aún no se ha aplicado. Por favor, confirma si deseas que se realice el cambio."
+        },
+        {
+          "id": "reservation-cancel-simulated",
+          "correct_tool": true,
+          "valid_arguments": true,
+          "grounded_response": false,
+          "required_terms_present": false,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 3.176,
+          "tool_call_latency_seconds": 1.674,
+          "prompt_tokens": 762,
+          "generated_tokens": 51,
+          "tool_calls": [
+            {
+              "id": "call_9datg81a",
+              "function": {
+                "index": 0,
+                "name": "delete_table_reservation",
+                "arguments": {
+                  "reservation_id": "R-TEST-42",
+                  "email": "ana@example.invalid",
+                  "phone": "+34000000000"
+                }
+              }
+            }
+          ],
+          "response": "La cancelación de la reserva R-TEST-42 está preparada, pero aún no se ha aplicado. Por favor, confirma si deseas proceder con la cancelación."
+        },
+        {
+          "id": "out-of-scope",
+          "correct_tool": true,
+          "valid_arguments": true,
+          "grounded_response": true,
+          "required_terms_present": true,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 2.374,
+          "tool_call_latency_seconds": 2.374,
+          "prompt_tokens": 747,
+          "generated_tokens": 73,
+          "tool_calls": [],
+          "response": "Lo siento, pero no puedo ayudarte con problemas técnicos relacionados con el motor de tu coche. Mi función es proporcionar información y asistencia relacionada con el restaurante RAGtaurant. Si tienes alguna pregunta sobre nuestros platos, servicios, reservas o información del restaurante, estaré encantado de ayudarte."
+        }
+      ],
+      "tool_accuracy": 0.8889,
+      "argument_accuracy": 0.7778,
+      "grounded_response_rate": 0.5556,
+      "mean_latency_seconds": 4.184
+    },
+    {
+      "kind": "generation_and_tools",
+      "model": "llama3.2:latest",
+      "hardware": "gpu",
+      "peak_container_memory_mib": 10745.4,
+      "peak_container_working_set_mib": 8354.5,
+      "peak_gpu_memory_mib": 4117,
+      "cases": [
+        {
+          "id": "menu-vegan",
+          "correct_tool": true,
+          "valid_arguments": true,
+          "grounded_response": false,
+          "required_terms_present": false,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 4.135,
+          "tool_call_latency_seconds": 3.235,
+          "prompt_tokens": 775,
+          "generated_tokens": 40,
+          "tool_calls": [
+            {
+              "id": "call_ixkjxeji",
+              "function": {
+                "index": 0,
+                "name": "search_menu",
+                "arguments": {
+                  "available_only": true,
+                  "exclude_allergens": null,
+                  "vegan_only": true,
+                  "vegetarian_only": false,
+                  "query": "entrada vegano disponible"
+                }
+              }
+            }
+          ],
+          "response": "Lo siento, pero no puedo confirmar la disponibilidad de los platos en este momento. ¿Podrías confirmar la disponibilidad de la Gazpacho Andaluz Tradicional antes de realizar tu pedido?"
+        },
+        {
+          "id": "allergen-paella",
+          "correct_tool": true,
+          "valid_arguments": false,
+          "grounded_response": false,
+          "required_terms_present": false,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 1.344,
+          "tool_call_latency_seconds": 0.824,
+          "prompt_tokens": 786,
+          "generated_tokens": 47,
+          "tool_calls": [
+            {
+              "id": "call_7qt40f6r",
+              "function": {
+                "index": 0,
+                "name": "search_menu",
+                "arguments": {
+                  "query": "Paella de Mariscos del Señorito",
+                  "available_only": false,
+                  "exclude_allergens": null,
+                  "vegan_only": false,
+                  "vegetarian_only": false
+                }
+              }
+            }
+          ],
+          "response": "La operación sigue pendiente. ¿Desea realizar una reserva, modificar o cancelar su pedido?"
+        },
+        {
+          "id": "weather-date",
+          "correct_tool": true,
+          "valid_arguments": false,
+          "grounded_response": true,
+          "required_terms_present": true,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 2.665,
+          "tool_call_latency_seconds": 0.646,
+          "prompt_tokens": 785,
+          "generated_tokens": 22,
+          "tool_calls": [
+            {
+              "id": "call_yjoeytit",
+              "function": {
+                "index": 0,
+                "name": "get_weather_forecast",
+                "arguments": {
+                  "date": "18 de octubre de 2026"
+                }
+              }
+            }
+          ],
+          "response": "Entendido. La previsión para el 18 de octubre de 2026 en el restaurante es la siguiente:\n\n* Temperatura máxima: 23 °C\n* Temperatura mínima: 15 °C\n* Probabilidad de precipitación: 10 %\n\nEs importante tener en cuenta que esta es una previsión simulada y no refleja la realidad. Si deseas obtener información actualizada, te recomiendo consultar una fuente meteorológica actualizada.\n\n¿Quieres confirmar la reserva para el 18 de octubre de 2026?"
+        },
+        {
+          "id": "restaurant-no-evidence",
+          "correct_tool": false,
+          "valid_arguments": false,
+          "grounded_response": false,
+          "required_terms_present": false,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 0.754,
+          "tool_call_latency_seconds": 0.754,
+          "prompt_tokens": 774,
+          "generated_tokens": 42,
+          "tool_calls": [
+            {
+              "id": "call_0amkuss8",
+              "function": {
+                "index": 0,
+                "name": "search_menu",
+                "arguments": {
+                  "query": "perros en la terraza",
+                  "available_only": false,
+                  "exclude_allergens": null,
+                  "vegan_only": false,
+                  "vegetarian_only": false
+                }
+              }
+            }
+          ],
+          "response": ""
+        },
+        {
+          "id": "reservation-create-simulated",
+          "correct_tool": true,
+          "valid_arguments": false,
+          "grounded_response": false,
+          "required_terms_present": false,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 1.902,
+          "tool_call_latency_seconds": 0.838,
+          "prompt_tokens": 808,
+          "generated_tokens": 51,
+          "tool_calls": [
+            {
+              "id": "call_0wxtuhgg",
+              "function": {
+                "index": 0,
+                "name": "make_table_reservation",
+                "arguments": {
+                  "date": "2026-10-18",
+                  "guests": "2",
+                  "time": "20:00",
+                  "customer_name": "Ana Ejemplo",
+                  "email": "ana@example.invalid",
+                  "phone": "+34000000000"
+                }
+              }
+            }
+          ],
+          "response": "Para confirmar la reserva, por favor, confirme si desea continuar con la reserva para Ana Ejemplo el 18 de octubre de 2026 a las 20:00 para 2 personas. ¿Desea continuar? (s/n)"
+        },
+        {
+          "id": "reservation-lookup-simulated",
+          "correct_tool": true,
+          "valid_arguments": true,
+          "grounded_response": true,
+          "required_terms_present": true,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 2.336,
+          "tool_call_latency_seconds": 0.679,
+          "prompt_tokens": 785,
+          "generated_tokens": 33,
+          "tool_calls": [
+            {
+              "id": "call_e27zyqeh",
+              "function": {
+                "index": 0,
+                "name": "get_table_reservation",
+                "arguments": {
+                  "reservation_id": "R-TEST-42",
+                  "email": "ana@example.invalid",
+                  "phone": "+34000000000"
+                }
+              }
+            }
+          ],
+          "response": "La reserva R-TEST-42 se ha verificado. La información es la siguiente:\n\n* Fecha: 2026-10-18\n* Hora: 20:00\n* Número de personas: 2\n* Correo electrónico: ana@example.invalid\n* Teléfono: +34000000000\n\nLa reserva sigue pendiente. ¿Desea realizar una modificación, cancelación o confirmación adicional?"
+        },
+        {
+          "id": "reservation-edit-simulated",
+          "correct_tool": true,
+          "valid_arguments": true,
+          "grounded_response": true,
+          "required_terms_present": true,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 1.671,
+          "tool_call_latency_seconds": 0.966,
+          "prompt_tokens": 795,
+          "generated_tokens": 51,
+          "tool_calls": [
+            {
+              "id": "call_vqqhvepf",
+              "function": {
+                "index": 0,
+                "name": "edit_table_reservation",
+                "arguments": {
+                  "reservation_id": "R-TEST-42",
+                  "date": "2026-10-17",
+                  "email": "ana@example.invalid",
+                  "phone": "+34000000000",
+                  "guests": null,
+                  "time": null
+                }
+              }
+            }
+          ],
+          "response": "Lo siento, pero no puedo realizar cambios en reservas existentes sin confirmación explícita. ¿Podrías confirmar que deseas realizar este cambio?"
+        },
+        {
+          "id": "reservation-cancel-simulated",
+          "correct_tool": true,
+          "valid_arguments": true,
+          "grounded_response": true,
+          "required_terms_present": true,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 1.765,
+          "tool_call_latency_seconds": 0.837,
+          "prompt_tokens": 785,
+          "generated_tokens": 33,
+          "tool_calls": [
+            {
+              "id": "call_ddjs6dum",
+              "function": {
+                "index": 0,
+                "name": "delete_table_reservation",
+                "arguments": {
+                  "email": "ana@example.invalid",
+                  "phone": "+34000000000",
+                  "reservation_id": "R-TEST-42"
+                }
+              }
+            }
+          ],
+          "response": "Lo siento, pero no puedo cancelar la reserva R-TEST-42 de ana@example.invalid con teléfono +34000000000 sin confirmación explícita. ¿Podrías confirmar que deseas cancelar la reserva?"
+        },
+        {
+          "id": "out-of-scope",
+          "correct_tool": true,
+          "valid_arguments": true,
+          "grounded_response": false,
+          "required_terms_present": false,
+          "forbidden_terms_absent": true,
+          "latency_seconds": 1.076,
+          "tool_call_latency_seconds": 1.076,
+          "prompt_tokens": 777,
+          "generated_tokens": 46,
+          "tool_calls": [],
+          "response": "No puedo proporcionar asistencia técnica específica para reparar motores de coches. Sin embargo, puedo ofrecerte información general sobre cómo realizar una inspección básica de motor o dónde buscar ayuda profesional."
+        }
+      ],
+      "tool_accuracy": 0.8889,
+      "argument_accuracy": 0.5556,
+      "grounded_response_rate": 0.4444,
+      "mean_latency_seconds": 1.961
+    },
+    {
+      "model": "bge-m3",
+      "hardware": "gpu",
+      "dimensions": 1024,
+      "input_count": 12,
+      "elapsed_seconds": 3.16,
+      "milliseconds_per_input": 263.3,
+      "recall_at_3": 0.8333,
+      "mrr": 0.8667,
+      "unanswerable_false_positive": false,
+      "cases": [
+        {
+          "id": "dish-gazpacho-ingredients",
+          "recall_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "top_document_id": "gazpacho",
+          "top_similarity": 0.6004,
+          "false_positive": false
+        },
+        {
+          "id": "dish-vegan",
+          "recall_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "top_document_id": "hamburguesa-vegana",
+          "top_similarity": 0.5959,
+          "false_positive": false
+        },
+        {
+          "id": "dish-allergens",
+          "recall_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "top_document_id": "paella",
+          "top_similarity": 0.6227,
+          "false_positive": false
+        },
+        {
+          "id": "dish-dessert",
+          "recall_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "top_document_id": "tarta-queso",
+          "top_similarity": 0.56,
+          "false_positive": false
+        },
+        {
+          "id": "dish-price",
+          "recall_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "top_document_id": "croquetas",
+          "top_similarity": 0.6564,
+          "false_positive": false
+        },
+        {
+          "id": "dish-synonym",
+          "recall_at_3": 0.0,
+          "reciprocal_rank": 0.2,
+          "top_document_id": "hamburguesa-vegana",
+          "top_similarity": 0.4683,
+          "false_positive": false
+        },
+        {
+          "id": "unanswerable-restaurant-policy",
+          "recall_at_3": null,
+          "reciprocal_rank": 0.0,
+          "top_document_id": "paella",
+          "top_similarity": 0.3766,
+          "false_positive": false
+        }
+      ],
+      "kind": "retrieval",
+      "peak_container_memory_mib": 10499.1,
+      "peak_container_working_set_mib": 8870.2,
+      "peak_gpu_memory_mib": 2303
+    },
+    {
+      "model": "nomic-embed-text",
+      "hardware": "gpu",
+      "dimensions": 768,
+      "input_count": 12,
+      "elapsed_seconds": 6.096,
+      "milliseconds_per_input": 507.96,
+      "recall_at_3": 0.75,
+      "mrr": 0.7639,
+      "unanswerable_false_positive": true,
+      "cases": [
+        {
+          "id": "dish-gazpacho-ingredients",
+          "recall_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "top_document_id": "gazpacho",
+          "top_similarity": 0.6808,
+          "false_positive": false
+        },
+        {
+          "id": "dish-vegan",
+          "recall_at_3": 0.5,
+          "reciprocal_rank": 0.3333333333333333,
+          "top_document_id": "tarta-queso",
+          "top_similarity": 0.8092,
+          "false_positive": false
+        },
+        {
+          "id": "dish-allergens",
+          "recall_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "top_document_id": "paella",
+          "top_similarity": 0.6817,
+          "false_positive": false
+        },
+        {
+          "id": "dish-dessert",
+          "recall_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "top_document_id": "tarta-queso",
+          "top_similarity": 0.6444,
+          "false_positive": false
+        },
+        {
+          "id": "dish-price",
+          "recall_at_3": 1.0,
+          "reciprocal_rank": 1.0,
+          "top_document_id": "croquetas",
+          "top_similarity": 0.6716,
+          "false_positive": false
+        },
+        {
+          "id": "dish-synonym",
+          "recall_at_3": 0.0,
+          "reciprocal_rank": 0.25,
+          "top_document_id": "hamburguesa-vegana",
+          "top_similarity": 0.6284,
+          "false_positive": false
+        },
+        {
+          "id": "unanswerable-restaurant-policy",
+          "recall_at_3": null,
+          "reciprocal_rank": 0.0,
+          "top_document_id": "tarta-queso",
+          "top_similarity": 0.6078,
+          "false_positive": true
+        }
+      ],
+      "kind": "retrieval",
+      "peak_container_memory_mib": 10828.5,
+      "peak_container_working_set_mib": 9837.9,
+      "peak_gpu_memory_mib": 2024
+    }
+  ]
+}

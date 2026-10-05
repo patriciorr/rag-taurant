@@ -3,7 +3,7 @@ services:
     image: ollama/ollama:latest
     container_name: ollama_restaurant
     ports:
-      - "11434:11434"
+      - "${OLLAMA_HOST_PORT:-11435}:11434"
     deploy:
       resources:
         reservations:
@@ -53,8 +53,9 @@ services:
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
-      - OLLAMA_MODEL=llama3.2:latest
-      - EMBEDDING_MODEL=nomic-embed-text
+      - OLLAMA_MODEL=qwen3:8b
+      - EMBEDDING_MODEL=bge-m3
+      - EMBEDDING_DIMENSIONS=1024
       - MONGODB_URI=mongodb://mongodb:27017/?directConnection=true
       - DB_NAME=rag-taurant
     depends_on:

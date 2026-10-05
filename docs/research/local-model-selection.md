@@ -4,9 +4,13 @@ Fecha de consulta: 2026-10-05
 
 ## Alcance y contexto observado
 
-Objetivo: seleccionar una pareja local de modelo de chat y embeddings para responder en español, llamar herramientas y recuperar información de la carta y del conocimiento del restaurante, usando CPU en un Intel Core Ultra 9 386H, con aproximadamente 24 GiB de RAM disponibles y sin GPU visible. Los datos de hardware y disponibilidad de GPU son los indicados para esta evaluación; no se ejecutaron modelos ni pruebas de rendimiento.
+Objetivo: seleccionar una pareja local de modelo de chat y embeddings para responder en español, llamar herramientas y recuperar información de la carta y del conocimiento del restaurante.
 
-El backend crea el agente con `ChatOllama` y `bind_tools` ([runner](../../backend/app/rag/agent.py)), y usa `OllamaEmbeddings` para indexar y consultar ([servicio de embeddings](../../backend/app/rag/embeddings.py)). Importante: el valor por defecto versionado de `OLLAMA_MODEL` es `deepseek-r1:14b`, no `llama3.2`; un `.env` o variable de entorno puede sobrescribirlo ([configuración](../../backend/app/core/config.py)). Además, el prompt menciona `get_weather_forecast`, pero esa herramienta no está en la lista `bot_tools` actualmente vinculada al modelo ([herramientas disponibles](../../backend/app/rag/tools.py)). Esto debe corregirse o excluirse de la evaluación del tool calling; el modelo no puede invocar una herramienta que no recibe.
+Hardware observado el 2026-10-05: Intel Core Ultra 9 386H (16 CPU lógicas), 23 GiB de RAM y NVIDIA GeForce RTX 5070 Ti Laptop GPU con 12.227 MiB de VRAM. `nvidia-smi` detecta la GPU en el host y dentro del contenedor; no se reinició el portátil. El servicio de inferencia y todos los modelos se ejecutan en `ollama/ollama:latest` (Ollama 0.34.0), con el puerto Docker 11434 publicado como 11435 en el host para coexistir con el Ollama nativo que ocupa 11434. El backend en Compose sigue usando la dirección interna `http://ollama:11434`.
+
+El backend crea el agente con `ChatOllama` y `bind_tools` ([runner](../../backend/app/rag/agent.py)), y usa `OllamaEmbeddings` para indexar y consultar ([servicio de embeddings](../../backend/app/rag/embeddings.py)). `get_weather_forecast` sí forma parte de `bot_tools` y se incluye en la evaluación ([herramientas disponibles](../../backend/app/rag/tools.py)). La configuración por defecto y Compose se han alineado en Qwen3 8B y BGE-M3; las variables de entorno aún permiten sobrescribirlos ([configuración](../../backend/app/core/config.py)).
+
+El MongoDB local contiene cinco platos de la carta y un índice vectorial de 768 dimensiones, correspondiente al embedding anterior. La selección de BGE-M3 exige regenerar esos vectores y actualizar el índice a 1024 dimensiones antes de arrancar el backend con la nueva configuración. No había documentos en la colección de conocimiento durante esta comprobación.
 
 ## Comparación
 
@@ -21,9 +25,55 @@ Los tamaños de Ollama son el tamaño publicado del artefacto/tag, no el pico de
 
 ## Recomendación
 
-Empezar la evaluación con **Qwen3 8B + BGE-M3**. Sus atributos publicados se alinean mejor con el requisito principal: español/multilingüismo para generación y recuperación. Los artefactos publicados suman aproximadamente 6.4 GB; es una referencia de almacenamiento, no una estimación de RAM pico. Con 24 GiB disponibles parece razonable probarlos en el host sin GPU, reservando margen para el contexto, el proceso de aplicación y la base de datos. En CPU la latencia puede ser el factor limitante, especialmente con prompts/historial largos o generación en modo thinking; no se puede inferir el tiempo de respuesta a partir del tamaño del artefacto.
+### Resultados medidos en RAGtaurant
 
-Como alternativa de menor huella, medir **Llama 3.2 3B + BGE-M3**; como paso intermedio, Ollama publica también `qwen3:4b` en 2.5 GB. La elección final depende del equilibrio medido entre latencia y corrección, no solo de la etiqueta de soporte de herramientas. Nomic puede servir como baseline pequeño, pero no reemplazaría BGE-M3 para el corpus español sin resultados que lo justifiquen.
+La matriz completa se ejecutó con el runner versionado [`backend/scripts/evaluate_local_models.py`](../../backend/scripts/evaluate_local_models.py) y quedó guardada en [`docs/research/local-model-benchmark.json`](./local-model-benchmark.json). Se usó un contexto de 4096 tokens, temperatura 0, semilla 0 y herramientas simuladas sin escrituras reales.
+
+#### Generación y tool calling
+
+| Modelo | Hardware | Tool accuracy | Argument accuracy | Grounded response rate | Latencia media | Pico contenedor | Working set | Pico VRAM |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Qwen3 8B | CPU | 0.8889 | **0.7778** | **0.6667** | 18.938 s | 12,655 MiB | 6,999 MiB | — |
+| Llama 3.2 3B | CPU | 0.8889 | 0.4444 | 0.5556 | **10.525 s** | 11,417 MiB | **3,990 MiB** | — |
+| Qwen3 8B | GPU | 0.8889 | **0.7778** | **0.5556** | 4.184 s | 11,170 MiB | 6,791 MiB | **7,041 MiB** |
+| Llama 3.2 3B | GPU | 0.8889 | 0.5556 | 0.4444 | **1.961 s** | **10,745 MiB** | 8,355 MiB | 4,117 MiB |
+
+Observaciones relevantes:
+
+- Ambos modelos fallaron el caso sin evidencia sobre perros en la terraza: no rechazaron con la respuesta correcta basada en falta de evidencia.
+- Qwen3 fue más consistente al rellenar argumentos correctos y al resumir correctamente los resultados simulados de reservas y meteorología.
+- Llama 3.2 fue bastante más rápido, especialmente en GPU, pero cometió más errores de formato/argumentos y varias respuestas quedaron peor fundamentadas.
+
+#### Recuperación
+
+| Embedding | Hardware | Dimensiones | Recall@3 | MRR | Falso positivo sin evidencia | Latencia por input |
+|---|---:|---:|---:|---:|---:|---:|
+| BGE-M3 | CPU | **1024** | **0.8333** | **0.8667** | **No** | 276.66 ms |
+| Nomic Embed Text | CPU | 768 | 0.7500 | 0.7639 | Sí | **79.97 ms** |
+| BGE-M3 | GPU | **1024** | **0.8333** | **0.8667** | **No** | **263.30 ms** |
+| Nomic Embed Text | GPU | 768 | 0.7500 | 0.7639 | Sí | 507.96 ms |
+
+Observaciones relevantes:
+
+- **BGE-M3** supera al embedding actual en recuperación y evita el falso positivo del caso sin respuesta (`¿Se admiten perros en la terraza?`).
+- Ambos embeddings suspendieron el caso de sinónimo `sopa fría de hortalizas`; esto indica que conviene ampliar los textos indexados o añadir más ejemplos/sinónimos al corpus.
+- En CPU, Nomic es claramente más rápido, pero sacrifica recuperación y genera un falso positivo sin evidencia. En GPU, además, BGE-M3 resulta incluso más rápido que Nomic en esta máquina.
+
+### Selección final
+
+La configuración local recomendada para RAGtaurant queda en:
+
+- **LLM por defecto:** `qwen3:8b`
+- **Embedding por defecto:** `bge-m3`
+- **Dimensión del índice vectorial:** `1024`
+
+Motivos:
+
+1. Qwen3 8B fue el mejor equilibrio medido entre precisión de herramientas, validez de argumentos y fundamentación, tanto en CPU como en GPU.
+2. Llama 3.2 3B es un fallback razonable cuando la prioridad absoluta es la latencia, pero no para la configuración por defecto porque pierde demasiada fiabilidad en argumentos y grounding.
+3. BGE-M3 superó de forma consistente al embedding previo y eliminó el falso positivo del caso sin evidencia, por lo que justifica regenerar todos los vectores.
+
+Como alternativa de menor huella, mantener documentado **Llama 3.2 3B + BGE-M3** para pruebas o equipos más ajustados. Nomic puede permanecer como baseline histórico, pero no como valor por defecto.
 
 Cambiar de embeddings obliga a **re-embedir todos los documentos** con el mismo modelo que se usará en las consultas y a comprobar/reconfigurar la dimensión del índice vectorial (BGE-M3: 1024; Nomic v1.5: 768 por defecto). No mezclar vectores antiguos y nuevos. LangChain confirma que `ChatOllama.bind_tools()` enlaza herramientas, pero también advierte que la compatibilidad depende del modelo Ollama; la interfaz del wrapper no garantiza que cada modelo elija la herramienta o produzca argumentos correctos. [9][10]
 

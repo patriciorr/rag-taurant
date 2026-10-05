@@ -1,6 +1,13 @@
 # app/core/init_db.py
 from app.core.database import db_instance
 from app.rag.embeddings import get_embeddings_batch
+from app.core.config import settings
+from app.evaluation.embedding_migration import (
+    VECTOR_INDEX_NAME,
+    get_vector_index_dimensions,
+    vector_index_definition,
+)
+from app.service.menu import menu_embedding_text
 
 INITIAL_MENU = [
   {
@@ -75,35 +82,42 @@ INITIAL_MENU = [
 
 async def init_vector_index():
     """Creates the vector search index on the 'menu' collection."""
-    collection = db_instance.db["menu"]
-    
-    cursor = await collection.list_search_indexes()
-    indexes = [idx async for idx in cursor]
-    
-    if any(idx.get("name") == "vector_index" for idx in indexes):
-        print("The vector index 'vector_index' already exists.")
-        return
+    collection_names = set(await db_instance.db.list_collection_names())
+    target_collections = ["menu"]
+    if "knowledge" in collection_names:
+        target_collections.append("knowledge")
 
-    index_model = {
-        "name": "vector_index",
-        "type": "vectorSearch",
-        "definition": {
-            "fields": [
-                {
-                    "type": "vector",
-                    "path": "embedding",
-                    "numDimensions": 768,
-                    "similarity": "cosine"
-                }
-            ]
-        }
-    }
-    
-    try:
-        await db_instance.db.command("createSearchIndexes", "menu", indexes=[index_model])
-        print("Vector search index 'vector_index' created successfully.")
-    except Exception as e:
-        print(f"Error creating the vector search index: {e}")
+    for collection_name in target_collections:
+        collection = db_instance.db[collection_name]
+        indexes = await (await collection.list_search_indexes()).to_list(length=None)
+        existing = next(
+            (index for index in indexes if index.get("name") == VECTOR_INDEX_NAME),
+            None,
+        )
+        if existing is None:
+            await db_instance.db.command(
+                "createSearchIndexes",
+                collection_name,
+                indexes=[
+                    {
+                        "name": VECTOR_INDEX_NAME,
+                        "type": "vectorSearch",
+                        "definition": vector_index_definition(
+                            settings.EMBEDDING_DIMENSIONS
+                        ),
+                    }
+                ],
+            )
+            continue
+        actual_dimensions = get_vector_index_dimensions(existing)
+        if actual_dimensions != settings.EMBEDDING_DIMENSIONS:
+            raise RuntimeError(
+                f"Vector index {VECTOR_INDEX_NAME!r} on {collection_name!r} has "
+                f"{actual_dimensions!r} dimensions; the configured embedding "
+                f"model {settings.EMBEDDING_MODEL!r} returns "
+                f"{settings.EMBEDDING_DIMENSIONS}. Run "
+                "'python scripts/reindex_embeddings.py' before starting the backend."
+            )
 
 async def seed_initial_menu():
     """Seeds the database with the initial menu calculating embeddings in batch."""
@@ -116,10 +130,7 @@ async def seed_initial_menu():
 
     print("Inserting initial dishes and generating embeddings in batch...")
     
-    texts = [
-        f"Plato: {item['name']}. Categoría: {item['category']}. Descripción: {item['description']}"
-        for item in INITIAL_MENU
-    ]
+    texts = [menu_embedding_text(item) for item in INITIAL_MENU]
     
     vectors = await get_embeddings_batch(texts)
     

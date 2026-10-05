@@ -6,10 +6,11 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
         
-    EMBEDDING_MODEL: str = "nomic-embed-text"
+    EMBEDDING_MODEL: str = "bge-m3"
+    EMBEDDING_DIMENSIONS: int = 1024
     
-    OLLAMA_BASE_URL: str = "http://localhost:11434"
-    OLLAMA_MODEL: str = "deepseek-r1:14b"
+    OLLAMA_BASE_URL: str = "http://localhost:11435"
+    OLLAMA_MODEL: str = "qwen3:8b"
     
     RESTAURANT_LAT: float = 37.3891
     RESTAURANT_LON: float = -5.9845

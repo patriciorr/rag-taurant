@@ -9,8 +9,8 @@
 [![React](https://img.shields.io/badge/React-18.x-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-5.x-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![LangChain](https://img.shields.io/badge/LangChain-0.3%2B-1C3C3C?logo=langchain&logoColor=white)](https://www.langchain.com/)
-[![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector_DB-FF6600?logo=databricks&logoColor=white)](https://www.trychroma.com/)
-[![Ollama](https://img.shields.io/badge/Ollama-Llama_3.2-black?logo=ollama&logoColor=white)](https://ollama.com/)
+[![MongoDB Atlas Local](https://img.shields.io/badge/MongoDB%20Atlas%20Local-Vector_Search-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/products/platform/atlas-vector-search)
+[![Ollama](https://img.shields.io/badge/Ollama-Qwen3_8B-black?logo=ollama&logoColor=white)](https://ollama.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 [![License: All Rights Reserved](https://img.shields.io/badge/License-All%20Rights%20Reserved-lightgrey?logo=data:image/svg%2bxml;base64,PHN2ZyB3aWR0aD0iMTk3cHgiIGhlaWdodD0iMTk3cHgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmVyc2lvbj0iMS4xIj4KCTxjaXJjbGUgY3g9Ijk4IiBjeT0iOTgiIHI9Ijk4IiBmaWxsPSJibGFjayIvPgoJPGNpcmNsZSBjeD0iOTgiIGN5PSI5OCIgcj0iNzgiIGZpbGw9IndoaXRlIi8+Cgk8Y2lyY2xlIGN4PSI5OCIgY3k9Ijk4IiByPSI1NSIgZmlsbD0iYmxhY2siLz4KCTxjaXJjbGUgY3g9Ijk4IiBjeT0iOTgiIHI9IjMwIiBmaWxsPSJ3aGl0ZSIvPgoJPHJlY3QgeD0iMTE1IiB5PSI4NSIgd2lkdGg9IjQ1IiBoZWlnaHQ9IjI1IiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4=)](./LICENSE)
 
@@ -22,7 +22,7 @@
 
 ## 📖 Overview
 
-**RAGtaurant** is a full-stack, intelligent restaurant application that seamlessly bridges modern web design with local AI agent technology. By leveraging **Retrieval-Augmented Generation (RAG)**, **LangChain Tool Calling**, and vector embeddings powered by **ChromaDB**, RAGtaurant provides customers with a real-time, interactive assistant capable of answering menu queries, checking local weather conditions, and placing table reservations.
+**RAGtaurant** is a full-stack, intelligent restaurant application that seamlessly bridges modern web design with local AI agent technology. By leveraging **Retrieval-Augmented Generation (RAG)**, **LangChain Tool Calling**, and local Ollama embeddings stored in **MongoDB Atlas Local** vector indexes, RAGtaurant provides customers with an interactive assistant capable of answering menu queries, checking local weather conditions, and preparing table reservations.
 
 The application features a sleek **React + Material UI** frontend served through **Nginx**, backed by a high-performance **FastAPI** REST API and a containerized **Ollama** LLM runner.
 
@@ -30,9 +30,9 @@ The application features a sleek **React + Material UI** frontend served through
 
 ## ✨ Key Features
 
-- 🤖 **AI-Powered Gourmet Assistant:** Autonomous chatbot powered by **Llama 3.2** with tool calling and conversational memory.
+- 🤖 **AI-Powered Gourmet Assistant:** Local chatbot powered by **Qwen3 8B** with tool calling and conversational memory.
 - 🥗 **Interactive Digital Menu:** Real-time dish exploration with category filters, price displays, dietary tags (vegan, vegetarian), and allergen warnings.
-- 🔍 **Vector Search & RAG:** Semantic search over menu items and restaurant information using **ChromaDB** embeddings.
+- 🔍 **Vector Search & RAG:** Semantic search over menu items and restaurant information using **MongoDB Atlas Local** vector search and local Ollama embeddings.
 - 🛠️ **Autonomous Agent Tools:**
   - 📖 `search_menu_and_info`: Performs vector similarity search for dish recommendations and details.
   - ☀️ `get_weather_forecast`: Retrieves the Open-Meteo forecast for the restaurant's configured location, covering today and the next 13 days.
@@ -60,8 +60,8 @@ The application features a sleek **React + Material UI** frontend served through
 | **Python**             | ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)          | Core backend language runtime                    |
 | **FastAPI**            | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)       | Asynchronous RESTful API framework               |
 | **LangChain**          | ![LangChain](https://img.shields.io/badge/LangChain-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white) | AI agent orchestration and tool execution        |
-| **ChromaDB**           | ![ChromaDB](https://img.shields.io/badge/ChromaDB-FF6600?style=for-the-badge&logo=databricks&logoColor=white)  | Local vector database for semantic RAG           |
-| **Ollama (Llama 3.2)** | ![Ollama](https://img.shields.io/badge/Ollama-000000?style=for-the-badge&logo=ollama&logoColor=white)          | Local LLM inference engine with function calling |
+| **MongoDB Atlas Local** | ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)       | Local document and vector database               |
+| **Ollama (Qwen3 8B)**  | ![Ollama](https://img.shields.io/badge/Ollama-000000?style=for-the-badge&logo=ollama&logoColor=white)          | Local LLM inference engine with function calling |
 | **Docker**             | ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)          | Multi-container environment orchestration        |
 
 ---
@@ -74,9 +74,8 @@ rag-taurant/
 │   ├── 📂 app/
 │   │   ├── 📂 api/               # API endpoints (menu, chat)
 │   │   ├── 📂 core/              # Global settings & environment configs
-│   │   ├── 📂 db/                # Vector store setup & seed data loader
+│   │   ├── 📂 db/                # Database setup and seed data loader
 │   │   └── 📂 rag/               # LangChain agent, prompt engineering & tools
-│   ├── 📂 chroma_db/             # Persistent ChromaDB vector storage (git-ignored)
 │   ├── 📄 Dockerfile             # Backend container image definition
 │   ├── 📄 main.py                # FastAPI entry point & CORS configuration
 │   └── 📄 requirements.txt       # Python dependencies
@@ -112,7 +111,7 @@ Ensure you have installed on your host system:
 
 ### 🐳 Quick Start with Docker Compose (Recommended)
 
-Launch the entire stack (Nginx, React, FastAPI, ChromaDB, and Ollama) with a single command:
+Launch the stack (Nginx, React, FastAPI, MongoDB Atlas Local, and Ollama) with Docker Compose:
 
 #### 1. Clone the Repository
 
@@ -121,28 +120,38 @@ git clone https://github.com/patriciorr/rag-taurant.git
 cd rag-taurant
 ```
 
-#### 2. Start the Containers
+#### 2. Start Ollama and download the configured local models
+
+Ollama runs in its Docker image. Pull the chat and embedding models into its persistent volume before starting the backend:
+
+```bash
+docker compose up -d ollama
+docker exec ollama_restaurant ollama pull qwen3:8b
+docker exec ollama_restaurant ollama pull bge-m3
+```
+
+#### 3. Start the application
 
 ```bash
 docker compose up -d --build
-```
-
-> [!IMPORTANT]
-> It may last for a while, specially the backend build part.
-
-#### 3. Pull the Llama 3.2 Model in Ollama
-
-Once the containers are running, download the required LLM model into the Ollama container:
-
-```bash
-docker exec -it ollama_restaurant ollama pull llama3.2
 ```
 
 #### 4. Access the Platform
 
 - **Web Application:** `http://localhost`
 - **REST API Documentation (Swagger):** `http://localhost:8000/docs`
-- **Ollama Engine API:** `http://localhost:11434`
+- **Ollama Engine API:** `http://localhost:11435` (host port; container port remains `11434`)
+
+The host port can be changed with `OLLAMA_HOST_PORT`. The backend container uses the internal Compose address `http://ollama:11434`.
+
+If MongoDB already contains vectors made with another embedding model, reindex them before starting the backend:
+
+```bash
+docker compose up -d ollama mongodb
+docker compose run --build --rm --no-deps backend python scripts/reindex_embeddings.py
+```
+
+This regenerates every menu vector and every existing restaurant-knowledge vector, and updates their vector-search index to the selected model's dimension.
 
 ---
 
@@ -150,14 +159,15 @@ docker exec -it ollama_restaurant ollama pull llama3.2
 
 If you prefer to run services manually outside Docker:
 
-#### 1. Start Ollama Server
-
-Ensure Ollama is installed and running locally on port `11434`:
+#### 1. Start the Ollama Docker service
 
 ```bash
-ollama serve
-ollama pull llama3.2
+docker compose up -d ollama
+docker exec ollama_restaurant ollama pull qwen3:8b
+docker exec ollama_restaurant ollama pull bge-m3
 ```
+
+The local backend defaults to `http://localhost:11435`; Ollama itself still runs inside Docker.
 
 #### 2. Backend Setup
 
@@ -216,18 +226,37 @@ The `mongodb` service runs MongoDB Atlas Local from the official `mongodb/mongod
 
 The integration tests use a unique `rag_taurant_test_*` database per test and drop it during cleanup. To use another MongoDB instance, set `TEST_MONGODB_URI` before running the tests and ensure it points to a disposable test deployment; test databases are deleted automatically.
 
+### Local Model Evaluation
+
+The versioned Spanish evaluation set compares Qwen3 8B with Llama 3.2 3B for tool selection, arguments, and grounded responses; it compares BGE-M3 with Nomic Embed Text for retrieval. Reservation tools only return canned simulated results and never modify MongoDB. The tests use deterministic inputs and do not call Ollama or the network.
+
+With the Ollama container running and all four models pulled, run the CPU and GPU profiles from `backend/`:
+
+```bash
+python scripts/evaluate_local_models.py \
+  --base-url http://localhost:11435 \
+  --hardware cpu,gpu \
+  --output ../docs/research/local-model-benchmark.json
+```
+
+The runner records total response latency, peak Ollama-container memory, peak GPU memory, tool/argument accuracy, grounding, and retrieval Recall@3/MRR. It unloads each model between profiles. See [the model-selection report](./docs/research/local-model-selection.md) for the chosen defaults and measured results.
+
 ### Agent Autonomous Tools
 
-1. **`search_menu_and_info(query: str)`**: Queries ChromaDB vector store for relevant menu items, ingredients, prices, and dietary details.
-2. **`get_weather_forecast(date: str | None)`**: Retrieves the 14-day Open-Meteo forecast or a specific available date; a verified active reservation date can provide the context.
-3. **`make_table_reservation(customer_name, date, time, guests)`**: Formats and confirms table booking details.
+1. **`search_menu(query, vegan_only, vegetarian_only, exclude_allergens, available_only)`**: Searches the menu using stored vector matches and structured dietary/allergen filters.
+2. **`search_info(query)`**: Queries the restaurant knowledge collection through MongoDB vector search.
+3. **`get_weather_forecast(date: str | None)`**: Retrieves the 14-day Open-Meteo forecast or a specific available date; a verified active reservation date can provide the context.
+4. **`make_table_reservation(customer_name, email, phone, date, time, guests)`**: Prepares and summarizes a new reservation without creating it until explicit confirmation.
+5. **`get_table_reservation(reservation_id, email, phone)`**: Verifies and reads an existing reservation.
+6. **`edit_table_reservation(reservation_id, email, phone, date, time, guests)`**: Prepares a reservation change without mutating it before confirmation.
+7. **`delete_table_reservation(reservation_id, email, phone)`**: Prepares a cancellation without applying it before confirmation.
 
 ---
 
 ## 🔒 Security & Best Practices
 
 - 🔐 **Environment Configuration:** Sensitive URLs and model choices are parameterized via Pydantic settings.
-- 🛡️ **Git Hygiene:** Heavy vector databases (`chroma_db/`), dependencies (`node_modules/`, `.venv/`), and build artifacts are strictly excluded in `.gitignore`.
+- 🛡️ **Git Hygiene:** Local dependencies (`node_modules/`, `.venv/`) and build artifacts are strictly excluded in `.gitignore`.
 - 🌐 **CORS Management:** Managed via FastAPI `CORSMiddleware` and Nginx reverse proxying to prevent cross-origin errors in production setups.
 
 ---

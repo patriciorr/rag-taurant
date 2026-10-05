@@ -76,5 +76,5 @@ The chatbot will handle restaurant information, the menu, allergies and dietary 
 - The current Open-Meteo service returns seven days and must expose the required 14 dates.
 - The current agent binds tools directly, and reservation tools access MongoDB directly; these must be migrated to respect shared rules.
 - The repository has a default LLM value that differs from the value in Docker Compose; configuration must be made consistent and the effective model documented.
-- Docker Compose requests an NVIDIA GPU. During this session, `nvidia-smi` did not detect the device, although the user confirmed the laptop has an RTX 5070 Ti with 12 GB of VRAM that is temporarily disabled. The machine will not be restarted, nor will an active GPU be required to continue.
+- Docker Compose requests an NVIDIA GPU. During implementation, `nvidia-smi` detected the NVIDIA GeForce RTX 5070 Ti Laptop GPU with 12,227 MiB of VRAM on the host and inside the Ollama container; no restart was needed.
 - This specification was approved in conversation; its associated GitHub issue is the reference for execution and tracking.

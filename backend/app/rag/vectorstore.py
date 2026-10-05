@@ -2,7 +2,6 @@
 import chromadb
 from chromadb.config import Settings as ChromaSettings
 from langchain_ollama import OllamaEmbeddings
-from langchain_community.embeddings import HuggingFaceEmbeddings
 from app.core.config import settings
 from app.models.menu import MenuItem
 from typing import List, Optional
@@ -18,7 +17,6 @@ class VectorStoreManager:
         self.embeddings_model = OllamaEmbeddings(
             model=settings.EMBEDDING_MODEL,
             base_url=settings.OLLAMA_BASE_URL,
-            dimensions=384
         )
         
         # 3. Colección del Menú

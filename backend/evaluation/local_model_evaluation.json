@@ -1,0 +1,203 @@
+{
+  "version": 1,
+  "reference_date": "2026-10-05",
+  "no_evidence_similarity_threshold": 0.55,
+  "documents": [
+    {
+      "id": "gazpacho",
+      "text": "Plato: Gazpacho Andaluz Tradicional. Categoría: entrante. Precio: 8.50 EUR. Ingredientes: tomate, pimiento, pepino y aceite de oliva virgen extra. Vegano y vegetariano. Alérgenos registrados: ninguno. Disponible."
+    },
+    {
+      "id": "croquetas",
+      "text": "Plato: Croquetas de Jamón Ibérico. Categoría: entrante. Precio: 12 EUR. Bechamel casera y jamón ibérico. Contiene gluten, lácteos y huevo. No vegano ni vegetariano. Disponible."
+    },
+    {
+      "id": "paella",
+      "text": "Plato: Paella de Mariscos del Señorito. Categoría: principal. Precio: 21 EUR. Arroz, gambas, calamares y mejillones. Contiene crustáceos y pescado. Disponible."
+    },
+    {
+      "id": "hamburguesa-vegana",
+      "text": "Plato: Hamburguesa Vegana de Garbanzos y Espinacas. Categoría: principal. Precio: 14.50 EUR. Garbanzos, espinacas, pan, aguacate, tomate y mayonesa vegana de ajo. Contiene gluten y soja. Disponible."
+    },
+    {
+      "id": "tarta-queso",
+      "text": "Plato: Tarta de Queso Cremosita San Sebastián. Categoría: postre. Precio: 7 EUR. Tarta horneada al estilo vasco. Contiene lácteos y huevo. Vegetariana, no vegana. Disponible."
+    }
+  ],
+  "retrieval": [
+    {
+      "id": "dish-gazpacho-ingredients",
+      "query": "¿Qué lleva el gazpacho andaluz?",
+      "relevant_ids": ["gazpacho"]
+    },
+    {
+      "id": "dish-vegan",
+      "query": "Busco un plato vegano para comer.",
+      "relevant_ids": ["gazpacho", "hamburguesa-vegana"]
+    },
+    {
+      "id": "dish-allergens",
+      "query": "¿La paella lleva marisco o pescado?",
+      "relevant_ids": ["paella"]
+    },
+    {
+      "id": "dish-dessert",
+      "query": "¿Qué postre tiene queso?",
+      "relevant_ids": ["tarta-queso"]
+    },
+    {
+      "id": "dish-price",
+      "query": "¿Cuánto cuestan las croquetas ibéricas?",
+      "relevant_ids": ["croquetas"]
+    },
+    {
+      "id": "dish-synonym",
+      "query": "Quiero una sopa fría de hortalizas.",
+      "relevant_ids": ["gazpacho"]
+    },
+    {
+      "id": "unanswerable-restaurant-policy",
+      "query": "¿Se admiten perros en la terraza?",
+      "relevant_ids": []
+    }
+  ],
+  "generation": [
+    {
+      "id": "menu-vegan",
+      "prompt": "¿Qué entrante vegano y disponible puedo pedir?",
+      "expected_tool": "search_menu",
+      "expected_arguments": {
+        "vegan_only": true,
+        "available_only": true
+      },
+      "required_arguments": ["query"],
+      "allowed_arguments": [
+        "query",
+        "vegan_only",
+        "vegetarian_only",
+        "exclude_allergens",
+        "available_only"
+      ],
+      "expected_response_terms": ["gazpacho andaluz", "vegano"],
+      "forbidden_response_terms": ["seguro para alergicos"],
+      "simulated_result": "Coincidencias recuperadas de la carta: Gazpacho Andaluz Tradicional, 8,50 €. Ingredientes: tomate, pimiento, pepino y aceite de oliva. Es vegano y está disponible. Alérgenos registrados: ninguno. La carta no informa sobre contaminación cruzada."
+    },
+    {
+      "id": "allergen-paella",
+      "prompt": "¿Qué alérgenos están registrados para la Paella de Mariscos del Señorito?",
+      "expected_tool": "search_menu",
+      "expected_arguments": {},
+      "required_arguments": ["query"],
+      "allowed_arguments": ["query"],
+      "expected_response_terms": ["crustaceos", "pescado"],
+      "forbidden_response_terms": ["sin crustaceos"],
+      "simulated_result": "La carta indica que la Paella de Mariscos del Señorito contiene crustáceos y pescado. No hay datos sobre contaminación cruzada."
+    },
+    {
+      "id": "weather-date",
+      "prompt": "¿Qué previsión hay para el 18 de octubre de 2026 en el restaurante?",
+      "expected_tool": "get_weather_forecast",
+      "expected_arguments": {
+        "date": "2026-10-18"
+      },
+      "allowed_arguments": ["date"],
+      "expected_response_terms": ["23", "15"],
+      "forbidden_response_terms": [],
+      "simulated_result": "Previsión simulada para 2026-10-18: temperatura máxima 23 °C, mínima 15 °C y probabilidad de precipitación 10 %."
+    },
+    {
+      "id": "restaurant-no-evidence",
+      "prompt": "¿Se admiten perros en la terraza?",
+      "expected_tool": "search_info",
+      "expected_arguments": {},
+      "required_arguments": ["query"],
+      "allowed_arguments": ["query"],
+      "expected_response_terms": ["no se encontro", "informacion"],
+      "forbidden_response_terms": ["se admiten perros"],
+      "simulated_result": "No se encontró información del restaurante sobre admisión de perros en la terraza."
+    },
+    {
+      "id": "reservation-create-simulated",
+      "prompt": "Prepara una reserva a nombre de Ana Ejemplo, ana@example.invalid, teléfono +34000000000, para el 18 de octubre de 2026 a las 20:00, para dos personas.",
+      "expected_tool": "make_table_reservation",
+      "expected_arguments": {
+        "customer_name": "Ana Ejemplo",
+        "email": "ana@example.invalid",
+        "phone": "+34000000000",
+        "date": "2026-10-18",
+        "time": "20:00",
+        "guests": 2
+      },
+      "allowed_arguments": [
+        "customer_name",
+        "email",
+        "phone",
+        "date",
+        "time",
+        "guests"
+      ],
+      "expected_response_terms": ["confirmacion"],
+      "forbidden_response_terms": ["reserva creada correctamente", "reserva confirmada"],
+      "simulated_result": "Simulación: se preparó una reserva para Ana Ejemplo el 2026-10-18 a las 20:00 para 2 personas. No se creó ni guardó ninguna reserva; es necesario pedir confirmación explícita."
+    },
+    {
+      "id": "reservation-lookup-simulated",
+      "prompt": "Consulta la reserva R-TEST-42 con correo ana@example.invalid y teléfono +34000000000.",
+      "expected_tool": "get_table_reservation",
+      "expected_arguments": {
+        "reservation_id": "R-TEST-42",
+        "email": "ana@example.invalid",
+        "phone": "+34000000000"
+      },
+      "allowed_arguments": ["reservation_id", "email", "phone"],
+      "expected_response_terms": ["r-test-42", "20:00"],
+      "forbidden_response_terms": [],
+      "simulated_result": "Simulación de reserva verificada R-TEST-42: fecha 2026-10-18, hora 20:00, 2 personas."
+    },
+    {
+      "id": "reservation-edit-simulated",
+      "prompt": "Cambia la reserva R-TEST-42, de ana@example.invalid y +34000000000, al 17 de octubre de 2026.",
+      "expected_tool": "edit_table_reservation",
+      "expected_arguments": {
+        "reservation_id": "R-TEST-42",
+        "email": "ana@example.invalid",
+        "phone": "+34000000000",
+        "date": "2026-10-17"
+      },
+      "required_arguments": ["reservation_id", "email", "phone"],
+      "allowed_arguments": [
+        "reservation_id",
+        "email",
+        "phone",
+        "date",
+        "time",
+        "guests"
+      ],
+      "expected_response_terms": ["confirmacion"],
+      "forbidden_response_terms": ["cambio aplicado correctamente", "actualizada correctamente"],
+      "simulated_result": "Simulación: el cambio de R-TEST-42 está preparado, pero todavía no se ha aplicado. Se requiere confirmación explícita."
+    },
+    {
+      "id": "reservation-cancel-simulated",
+      "prompt": "Cancela la reserva R-TEST-42 de ana@example.invalid con teléfono +34000000000.",
+      "expected_tool": "delete_table_reservation",
+      "expected_arguments": {
+        "reservation_id": "R-TEST-42",
+        "email": "ana@example.invalid",
+        "phone": "+34000000000"
+      },
+      "allowed_arguments": ["reservation_id", "email", "phone"],
+      "expected_response_terms": ["confirmacion"],
+      "forbidden_response_terms": ["cancelada correctamente"],
+      "simulated_result": "Simulación: la cancelación de R-TEST-42 está preparada, pero todavía no se ha aplicado. Se requiere confirmación explícita."
+    },
+    {
+      "id": "out-of-scope",
+      "prompt": "Explícame cómo arreglar el motor de mi coche.",
+      "expected_tool": null,
+      "expected_arguments": {},
+      "expected_response_terms": ["restaurante"],
+      "simulated_result": null
+    }
+  ]
+}

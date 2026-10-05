@@ -7,33 +7,38 @@ from app.repository.menu import menu_repository
 from app.rag.embeddings import get_embedding
 from app.core.exceptions import MenuItemNotFoundException, EmbeddingServiceException, DatabaseException
 
+
+def menu_embedding_text(item: Dict[str, Any]) -> str:
+    """Format structured menu fields consistently for vector indexing and queries."""
+    parts = []
+
+    if item.get("name"):
+        parts.append(f"Plato: {item['name']}")
+    if item.get("category"):
+        parts.append(f"Categoría: {item['category']}")
+    if item.get("price") is not None:
+        parts.append(f"Precio: {item['price']} EUR")
+    if item.get("description"):
+        parts.append(f"Descripción: {item['description']}")
+
+    is_vegan = item.get("is_vegan", False)
+    is_vegetarian = item.get("is_vegetarian", False)
+    parts.append(f"Apto para veganos: {'Sí' if is_vegan else 'No'}")
+    parts.append(f"Apto para vegetarianos: {'Sí' if is_vegetarian else 'No'}")
+
+    allergens = item.get("allergens", [])
+    if allergens:
+        allergens_str = ", ".join(allergens) if isinstance(allergens, list) else str(allergens)
+        parts.append(f"Contiene alérgenos: {allergens_str}")
+    else:
+        parts.append("Alérgenos: Ninguno")
+
+    return ". ".join(parts) + "."
+
+
 class MenuService:
     def _get_text_for_embedding(self, item: Dict[str, Any]) -> str:
-        """Creates a comprehensive textual description of a menu item for embedding purposes."""
-        parts = []
-
-        if item.get("name"):
-            parts.append(f"Plato: {item['name']}")
-        if item.get("category"):
-            parts.append(f"Categoría: {item['category']}")
-        if item.get("price") is not None:
-            parts.append(f"Precio: {item['price']} EUR")
-        if item.get("description"):
-            parts.append(f"Descripción: {item['description']}")
-
-        is_vegan = item.get("is_vegan", False)
-        is_vegetarian = item.get("is_vegetarian", False)
-        parts.append(f"Apto para veganos: {'Sí' if is_vegan else 'No'}")
-        parts.append(f"Apto para vegetarianos: {'Sí' if is_vegetarian else 'No'}")
-
-        allergens = item.get("allergens", [])
-        if allergens:
-            allergens_str = ", ".join(allergens) if isinstance(allergens, list) else str(allergens)
-            parts.append(f"Contiene alérgenos: {allergens_str}")
-        else:
-            parts.append("Alérgenos: Ninguno")
-
-        return ". ".join(parts) + "."
+        return menu_embedding_text(item)
 
     async def list_menu(self) -> List[MenuItem]:
         try:
