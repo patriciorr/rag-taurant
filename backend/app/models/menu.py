@@ -80,7 +80,7 @@ class MenuItem(MenuItemBase):
         if self.is_vegetarian:
             diet_labels.append("Apto para vegetarianos")
         
-        allergens_str = ", ".join([a.value for a in self.allergens]) if self.allergens else "Sin alérgenos comunes"
+        allergens_str = ", ".join([a.value for a in self.allergens]) if self.allergens else "Ninguno registrado"
         diets_str = ", ".join(diet_labels) if diet_labels else "Opción no vegetariana/vegana"
 
         return (

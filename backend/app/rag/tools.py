@@ -6,7 +6,9 @@ from langchain_core.tools import tool
 from pymongo import MongoClient
 from langchain_ollama import OllamaEmbeddings
 from app.core.config import settings
+from app.models.menu import Allergen
 from app.models.reservation import ReservationContact, ReservationCreate, ReservationUpdate, ReservationInDB
+from app.service.menu import menu_service
 from app.service.reservation import reservation_service
 
 client = MongoClient(settings.MONGODB_URI)
@@ -19,31 +21,56 @@ embeddings_model = OllamaEmbeddings(
 
 # --- BÚSQUEDA RAG: MENÚ ---
 @tool
-def search_menu(query: str) -> str:
-    """Busca en la carta platos, ingredientes, precios, opciones veganas/vegetarianas y alérgenos."""
-    query_vector = embeddings_model.embed_query(query)
-    
-    pipeline = [
-        {
-            "$vectorSearch": {
-                "index": "vector_index",
-                "path": "embedding",
-                "queryVector": query_vector,
-                "numCandidates": 10,
-                "limit": 4
-            }
-        },
-        {"$project": {"_id": 0, "embedding": 0}}
+async def search_menu(
+    query: str,
+    vegan_only: bool = False,
+    vegetarian_only: bool = False,
+    exclude_allergens: Optional[list[str]] = None,
+    available_only: bool = True,
+) -> str:
+    """Busca platos y aplica las preferencias usando los atributos registrados de la carta."""
+    items = await menu_service.list_menu()
+    if not items:
+        return "No hay información de platos disponible en la carta para responder."
+
+    valid_allergens = {allergen.value for allergen in Allergen}
+    excluded = set(exclude_allergens or [])
+    unknown_allergens = excluded - valid_allergens
+    if unknown_allergens:
+        return "No pude aplicar el filtro porque contiene alérgenos no reconocidos: " + ", ".join(sorted(unknown_allergens))
+
+    similar_items = await menu_service.search_similar_dishes(query, limit=len(items))
+    items_by_id = {item.id: item for item in items}
+    matches = [
+        items_by_id[result["id"]]
+        for result in similar_items
+        if result.get("id") in items_by_id
     ]
-    
-    results = list(db["dishes"].aggregate(pipeline))
-    if not results:
-        return "No se encontraron platos coincidentes en la carta."
-    
-    response = "Platos encontrados en la carta:\n"
-    for d in results:
-        response += f"- {d.get('name')} ({d.get('price')}€): {d.get('description')} [Alérgenos: {', '.join(d.get('allergens', [])) or 'Ninguno'}]\n"
-    return response
+
+    matches = [
+        item
+        for item in matches
+        if (not vegan_only or item.is_vegan)
+        and (not vegetarian_only or item.is_vegetarian)
+        and (not available_only or item.available)
+        and not excluded.intersection(allergen.value for allergen in item.allergens)
+    ]
+    if not matches:
+        return "No encontré platos disponibles que coincidan con la consulta y los filtros indicados."
+
+    response = ["Coincidencias recuperadas de la carta:"]
+    for item in matches:
+        allergens = ", ".join(allergen.value for allergen in item.allergens) or "ninguno registrado"
+        response.append(
+            f"- {item.name} ({item.price:.2f}€). {item.description} "
+            f"Alérgenos registrados: {allergens}. "
+            f"Vegano: {'sí' if item.is_vegan else 'no'}; "
+            f"vegetariano: {'sí' if item.is_vegetarian else 'no'}; "
+            f"disponibilidad: {'disponible' if item.available else 'no disponible'}. "
+            "La carta no indica datos sobre contaminación cruzada, por lo que no se puede garantizar "
+            "que un plato sea seguro para una alergia."
+        )
+    return "\n".join(response)
 
 # --- BÚSQUEDA RAG: INFORMACIÓN GENERAL (llm.txt) ---
 @tool

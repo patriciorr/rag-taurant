@@ -1,5 +1,6 @@
 # app/rag/agent.py
 import unicodedata
+import logging
 from typing import Dict
 from langchain_ollama import ChatOllama
 from langchain_core.messages import SystemMessage, ToolMessage
@@ -9,8 +10,11 @@ from app.models.reservation import ReservationContact
 from app.rag.tools import bot_tools
 from app.service.reservation import reservation_service
 
+logger = logging.getLogger(__name__)
+
 # 1. Mapa de herramientas por nombre para invocación directa
 TOOLS_MAP = {tool.name: tool for tool in bot_tools}
+RETRIEVAL_TOOLS = {"search_menu", "search_info"}
 
 # 2. Instancia del modelo Ollama en Docker con herramientas vinculadas
 llm = ChatOllama(
@@ -32,15 +36,20 @@ def get_session_history(session_id: str) -> ChatMessageHistory:
 SYSTEM_PROMPT = SystemMessage(
     content=(
         "Eres el asistente virtual oficial del restaurante RAGtaurant. Tu objetivo es ser servicial, preciso y amable. "
-        "Responde siempre en español.\n\n"
-        "Cuentas con las siguientes herramientas especializadas que DEBES usar antes de responder:\n"
-        "1. `search_menu`: Para consultar la carta, ingredientes, alérgenos, ofertas veganas/vegetarianas y precios de platos.\n"
-        "2. `search_info`: Para consultar dudas sobre ubicación, horarios, parking, terraza o políticas del restaurante.\n"
-        "3. `get_weather_forecast`: Para consultar la previsión meteorológica.\n"
-        "4. `make_table_reservation`: Para registrar nuevas reservas (requiere nombre, email, teléfono, fecha YYYY-MM-DD, hora HH:MM y número de comensales).\n"
-        "5. `get_table_reservation`: Para buscar y mostrar una reserva usando el ID, email o teléfono del cliente.\n"
-        "6. `edit_table_reservation`: Para modificar fecha, hora, comensales o nombre de una reserva existente usando su ID, email o teléfono.\n"
-        "7. `delete_table_reservation`: Para preparar la cancelación verificando código de reserva, email y teléfono.\n\n"
+        "Responde siempre en español y atiende únicamente consultas sobre el restaurante, su información, su carta y reservas. "
+        "Declina brevemente cualquier petición ajena a esos temas; no intentes resolverla.\n\n"
+        "Usa `search_menu` para consultar la carta y `search_info` para consultar información institucional. "
+        "Usa los datos recuperados como única fuente de verdad. Si no hay evidencia suficiente o la consulta no tiene resultados, "
+        "indícalo claramente y no completes la respuesta con suposiciones. Para filtros dietéticos o de alergias, "
+        "usa `vegan_only`, `vegetarian_only` y `exclude_allergens` de `search_menu`; nunca infieras esos atributos "
+        "a partir de la descripción. Para recomendaciones, deja `available_only` activado; para comprobar si un plato "
+        "concreto está disponible, desactívalo y comunica el estado registrado. No afirmes que un plato es seguro para "
+        "una alergia: la contaminación cruzada no consta.\n\n"
+        "Las herramientas de reserva disponibles son:\n"
+        "1. `make_table_reservation`: Para registrar una reserva (nombre, email, teléfono, fecha YYYY-MM-DD, hora HH:MM y comensales).\n"
+        "2. `get_table_reservation`: Para consultar una reserva.\n"
+        "3. `edit_table_reservation`: Para modificar una reserva.\n"
+        "4. `delete_table_reservation`: Para preparar la cancelación verificando código de reserva, email y teléfono.\n\n"
         "Antes de cancelar, presenta un resumen y espera una confirmación afirmativa explícita en un mensaje posterior. "
         "Nunca consideres la llamada a la herramienta ni una confirmación anterior como consentimiento. "
         "Para cancelar una reserva, exige su código, email y teléfono coincidentes."
@@ -80,6 +89,26 @@ class RAGChatbotRunner:
         
         messages = [SYSTEM_PROMPT] + history.messages
         response = await llm_with_tools.ainvoke(messages)
+
+        tool_calls = getattr(response, "tool_calls", None) or []
+        if tool_calls and all(call["name"] in RETRIEVAL_TOOLS for call in tool_calls):
+            evidence = []
+            for tool_call in tool_calls:
+                tool_name = tool_call["name"]
+                selected_tool = TOOLS_MAP.get(tool_name)
+                if selected_tool is None:
+                    evidence.append("No se pudo consultar la fuente autorizada.")
+                    continue
+                try:
+                    result = await selected_tool.ainvoke(tool_call["args"])
+                    evidence.append(str(result))
+                except Exception:
+                    logger.exception("Failed to retrieve chatbot evidence with %s", tool_name)
+                    evidence.append("No pude consultar la información del restaurante en este momento.")
+            final_output = "\n\n".join(evidence)
+            history.add_ai_message(final_output)
+            return {"output": final_output}
+
         max_iterations = 5
         iteration = 0
         
