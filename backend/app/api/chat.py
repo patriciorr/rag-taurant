@@ -1,13 +1,21 @@
 # app/api/chat.py
+from typing import Annotated
+
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, StringConstraints
+
 from app.rag.agent import rag_chatbot
 
 router = APIRouter(prefix="/chat", tags=["Chatbot RAG"])
 
+SessionId = Annotated[
+    str,
+    StringConstraints(strip_whitespace=True, min_length=1, max_length=128),
+]
+
 class ChatRequest(BaseModel):
     message: str
-    session_id: str = "default_session"
+    session_id: SessionId
 
 class ChatResponse(BaseModel):
     response: str

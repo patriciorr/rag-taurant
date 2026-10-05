@@ -16,7 +16,7 @@ export const getMenu = async () => {
   return response.data;
 };
 
-export const sendChatMessage = async (message, sessionId = 'user_session_1') => {
+export const sendChatMessage = async (message, sessionId) => {
   const response = await api.post('/chat/', {
     message,
     session_id: sessionId,

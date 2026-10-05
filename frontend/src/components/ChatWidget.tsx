@@ -13,6 +13,7 @@ export default function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [sessionId] = useState(() => crypto.randomUUID());
   const [messages, setMessages] = useState([
     { sender: 'bot', text: '¡Hola! Soy el asistente virtual del restaurante. ¿En qué puedo ayudarte hoy?' }
   ]);
@@ -36,7 +37,7 @@ export default function ChatWidget() {
     setLoading(true);
 
     try {
-      const data = await sendChatMessage(userText);
+      const data = await sendChatMessage(userText, sessionId);
       setMessages((prev) => [...prev, { sender: 'bot', text: data.response }]);
     } catch (error) {
       setMessages((prev) => [

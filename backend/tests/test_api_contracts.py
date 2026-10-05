@@ -54,6 +54,20 @@ def test_chat_endpoint_awaits_the_chatbot_runner(client, monkeypatch):
     assert response.json() == {"response": "¡Hola!", "session_id": "tab-1"}
 
 
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"message": "Hola"},
+        {"message": "Hola", "session_id": ""},
+        {"message": "Hola", "session_id": "   "},
+    ],
+)
+def test_chat_endpoint_requires_a_non_empty_session_id(client, payload):
+    response = client.post("/api/v1/chat/", json=payload)
+
+    assert response.status_code == 422
+
+
 def test_menu_search_rejects_whitespace_only_queries(client, monkeypatch):
     async def search_similar_dishes(query, limit):
         pytest.fail("Whitespace-only queries must not reach the embedding service.")

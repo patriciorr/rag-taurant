@@ -54,7 +54,10 @@ class RAGChatbotRunner:
         self.pending_cancellations: Dict[str, dict[str, str]] = {}
 
     async def ainvoke(self, input_data: dict, config: dict) -> dict:
-        session_id = config.get("configurable", {}).get("session_id", "default")
+        session_id = config.get("configurable", {}).get("session_id")
+        if not isinstance(session_id, str) or not session_id.strip():
+            raise ValueError("A non-empty session_id is required.")
+        session_id = session_id.strip()
         history = get_session_history(session_id)
         user_text = input_data["input"]
         history.add_user_message(user_text)
