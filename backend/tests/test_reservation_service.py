@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 import pytest
 from pymongo.errors import DuplicateKeyError
 
-from app.core.exceptions import ReservationConflictException, ReservationNotFoundException
+from app.core.exceptions import ReservationConflictException, ReservationNotFoundException, ReservationValidationException
 from app.models import reservation as reservation_models
 from app.models.reservation import ReservationContact, ReservationCreate, ReservationUpdate
 from app.service import reservation as reservation_module
@@ -161,3 +161,24 @@ async def test_cancellation_is_safe_to_retry_and_keeps_the_reservation(monkeypat
 
     retained = await service.get_reservation("RES-1", contact)
     assert retained.status == "cancelled"
+
+@pytest.mark.asyncio
+async def test_cancelled_reservation_cannot_be_modified(monkeypatch):
+    service = ReservationService()
+    stored = {**reservation_document(), "status": "cancelled"}
+
+    async def get_reservation(reservation_id):
+        return stored
+
+    async def update_reservation(reservation_id, update_data):
+        pytest.fail("A cancelled reservation must not be updated.")
+
+    monkeypatch.setattr(reservation_module.reservation_repository, "get_reservation", get_reservation)
+    monkeypatch.setattr(reservation_module.reservation_repository, "update_reservation", update_reservation)
+
+    with pytest.raises(ReservationValidationException):
+        await service.update_reservation(
+            "RES-1",
+            ReservationUpdate(guests=4),
+            ReservationContact(email="ana@example.com", phone="+34612345678"),
+        )

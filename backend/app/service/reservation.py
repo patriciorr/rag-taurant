@@ -82,6 +82,8 @@ class ReservationService:
         contact: ReservationContact,
     ) -> ReservationInDB:
         existing_doc, existing = await self._get_authorized_reservation(reservation_id, contact)
+        if existing_doc.get("status") == "cancelled":
+            raise ReservationValidationException("Cancelled reservations cannot be modified.")
         reservation_date = update_data.get("date", existing.date)
         reservation_time = update_data.get("time", existing.time)
         try:

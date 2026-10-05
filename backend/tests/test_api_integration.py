@@ -3,6 +3,8 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
+from app.repository.reservation import reservation_repository
+
 from app.service import menu as menu_module
 
 
@@ -171,3 +173,26 @@ async def test_reservations_enforce_contact_uniqueness_and_protected_crud(mongo_
     )
     assert rebooked.status_code == 201
     assert rebooked.json()["status"] == "confirmed"
+
+@pytest.mark.asyncio
+async def test_ensure_indexes_upgrades_legacy_unconditional_unique_indexes(mongo_api_client):
+    from app.core.database import db_instance
+
+    collection = db_instance.db["reservations"]
+    await collection.drop_indexes()
+    await collection.create_index([("email", 1), ("date", 1)], unique=True, name="reservation_email_per_day")
+    await collection.create_index([("phone", 1), ("date", 1)], unique=True, name="reservation_phone_per_day")
+    await collection.insert_one(
+        {"reservation_id": "RES-OLD", "email": "ana@example.com", "phone": "+34612345678",
+         "date": "2030-02-28", "status": "cancelled"}
+    )
+
+    await reservation_repository.ensure_indexes()
+
+    indexes = await collection.index_information()
+    for name in ("reservation_email_per_day", "reservation_phone_per_day"):
+        assert indexes[name]["partialFilterExpression"] == {"status": "confirmed"}
+    await collection.insert_one(
+        {"reservation_id": "RES-NEW", "email": "ana@example.com", "phone": "+34612345678",
+         "date": "2030-02-28", "status": "confirmed"}
+    )
