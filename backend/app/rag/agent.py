@@ -6,15 +6,22 @@ from langchain_ollama import ChatOllama
 from langchain_core.messages import SystemMessage, ToolMessage
 from langchain_community.chat_message_histories import ChatMessageHistory
 from app.core.config import settings
-from app.core.exceptions import DatabaseException, ReservationConflictException
-from app.models.reservation import ReservationContact, ReservationCreate
+from app.core.exceptions import (
+    DatabaseException,
+    ReservationConflictException,
+    ReservationNotFoundException,
+    ReservationValidationException,
+)
+from app.models.reservation import ReservationContact, ReservationCreate, ReservationUpdate
 from pydantic import ValidationError
 from app.rag.tools import (
     bot_tools,
     format_verified_table_reservation,
     format_reservation_confirmation,
     get_verified_table_reservation,
+    format_table_reservation_update,
     prepare_table_reservation,
+    prepare_table_reservation_update,
 )
 from app.service.reservation import reservation_service
 
@@ -62,12 +69,14 @@ SYSTEM_PROMPT = SystemMessage(
         "Las herramientas de reserva disponibles son:\n"
         "1. `make_table_reservation`: Para validar y preparar una reserva (nombre, email, teléfono, fecha YYYY-MM-DD, hora HH:MM y comensales); no la registra.\n"
         "2. `get_table_reservation`: Para consultar una reserva usando su código, email y teléfono coincidentes.\n"
-        "3. `edit_table_reservation`: Para modificar una reserva.\n"
+        "3. `edit_table_reservation`: Para preparar cambios de fecha, hora o comensales de una reserva "
+        "usando su código, email y teléfono coincidentes; no la modifica hasta confirmación.\n"
         "4. `delete_table_reservation`: Para preparar la cancelación verificando código de reserva, email y teléfono.\n\n"
-        "Antes de crear o cancelar, presenta un resumen y espera una confirmación afirmativa explícita en un mensaje posterior. "
+        "Antes de crear, modificar o cancelar, presenta un resumen y espera una confirmación afirmativa explícita en un mensaje posterior. "
         "Nunca consideres la llamada a la herramienta ni una confirmación anterior como consentimiento. "
         "Para crear, recoge todos los datos requeridos; no afirmes que la reserva se ha registrado hasta que el sistema lo confirme. "
-        "Para cancelar una reserva, exige su código, email y teléfono coincidentes."
+        "Para consultar, modificar o cancelar una reserva, exige siempre su código, email y teléfono coincidentes. "
+        "Para modificar, solo puedes cambiar fecha, hora y número de comensales."
     )
 )
 
@@ -77,6 +86,7 @@ class RAGChatbotRunner:
     def __init__(self) -> None:
         self.pending_creations: Dict[str, dict[str, str | int]] = {}
         self.pending_cancellations: Dict[str, dict[str, str]] = {}
+        self.pending_updates: Dict[str, dict[str, object]] = {}
         self.verified_reservations: Dict[str, tuple[str, str]] = {}
 
     async def ainvoke(self, input_data: dict, config: dict) -> dict:
@@ -151,6 +161,64 @@ class RAGChatbotRunner:
                 )
             history.add_ai_message(output)
             return {"output": output}
+
+        pending_update = self.pending_updates.get(session_id)
+        if pending_update is not None:
+            answer = self._confirmation_answer(user_text)
+            if answer == "yes":
+                self.pending_updates.pop(session_id)
+                try:
+                    contact = ReservationContact(
+                        email=pending_update["email"],
+                        phone=pending_update["phone"],
+                    )
+                    update = ReservationUpdate(**pending_update["update"])
+                    updated = await reservation_service.update_reservation(
+                        pending_update["reservation_id"],
+                        update,
+                        contact,
+                    )
+                    self.verified_reservations.pop(session_id, None)
+                    output = (
+                        f"La reserva '{updated.reservation_id}' se ha modificado correctamente. "
+                        f"Fecha: {updated.date.isoformat()}, hora: "
+                        f"{updated.time.isoformat(timespec='minutes')}, comensales: "
+                        f"{updated.guests}."
+                    )
+                except ValidationError as exc:
+                    output = self._reservation_update_validation_error(exc)
+                except ReservationConflictException:
+                    output = (
+                        "No se ha modificado la reserva: ya existe una reserva activa para esos "
+                        "datos de contacto en esa fecha."
+                    )
+                except ReservationValidationException:
+                    output = (
+                        "No se ha modificado la reserva. Comprueba que siga activa y que la fecha "
+                        "y la hora estén dentro del horario disponible."
+                    )
+                except DatabaseException:
+                    logger.exception("Failed to update a confirmed reservation")
+                    output = (
+                        "No se pudo modificar la reserva por un fallo del servicio. "
+                        "No se ha confirmado ningún cambio; inténtalo de nuevo más tarde."
+                    )
+                except Exception:
+                    logger.exception("Unexpected failure updating a confirmed reservation")
+                    output = (
+                        "No se pudo modificar la reserva por un fallo del servicio. "
+                        "No se ha confirmado ningún cambio; inténtalo de nuevo más tarde."
+                    )
+            elif answer == "no":
+                self.pending_updates.pop(session_id)
+                output = "De acuerdo, no se ha modificado la reserva."
+            else:
+                output = (
+                    "La solicitud de cambio sigue pendiente. Responde «sí» para confirmar "
+                    "o «no» para descartarla."
+                )
+            history.add_ai_message(output)
+            return {"output": output}
         
         messages = [SYSTEM_PROMPT] + history.messages
         response = await llm_with_tools.ainvoke(messages)
@@ -169,16 +237,15 @@ class RAGChatbotRunner:
                     evidence.append(str(result))
                 except Exception:
                     logger.exception("Failed to retrieve chatbot evidence with %s", tool_name)
-                    if tool_name == "get_table_reservation":
-                        evidence.append("No pude verificar la reserva con esos datos.")
-                    else:
-                        evidence.append("No pude consultar la información del restaurante en este momento.")
+                    evidence.append("No pude consultar la información del restaurante en este momento.")
             final_output = "\n\n".join(evidence)
             history.add_ai_message(final_output)
             return {"output": final_output}
 
         max_iterations = 5
         iteration = 0
+        reservation_lookup_output: str | None = None
+        additional_tool_used = False
         
         while getattr(response, "tool_calls", None) and iteration < max_iterations:
             iteration += 1
@@ -201,17 +268,61 @@ class RAGChatbotRunner:
                     output = format_reservation_confirmation(reservation)
                     history.add_ai_message(output)
                     return {"output": output}
+
+                if tool_name == "edit_table_reservation":
+                    try:
+                        reservation, update = await prepare_table_reservation_update(**tool_args)
+                    except ReservationNotFoundException:
+                        output = self._reservation_not_found_message()
+                    except ValidationError as exc:
+                        output = self._reservation_update_validation_error(exc)
+                    except TypeError:
+                        output = self._reservation_not_found_message()
+                    except ReservationValidationException:
+                        output = (
+                            "No se puede modificar esa reserva. Comprueba que siga activa y que "
+                            "hayas indicado fecha, hora o comensales dentro de las reglas."
+                        )
+                    except DatabaseException:
+                        logger.exception("Failed to prepare a reservation update")
+                        output = "No se pudo consultar la reserva en este momento. Inténtalo más tarde."
+                    else:
+                        self.pending_updates[session_id] = {
+                            "reservation_id": reservation.reservation_id,
+                            "email": reservation.email,
+                            "phone": reservation.phone,
+                            "update": update.model_dump(mode="json", exclude_unset=True),
+                        }
+                        output = format_table_reservation_update(reservation, update)
+                    history.add_ai_message(output)
+                    return {"output": output}
                 
                 if tool_name in TOOLS_MAP:
+                    if tool_name == "get_table_reservation":
+                        reservation_lookup_output = self._reservation_not_found_message()
+                    else:
+                        additional_tool_used = True
                     try:
                         tool_output = await self._invoke_tool(tool_name, tool_args, session_id)
+                        if tool_name == "get_table_reservation":
+                            reservation_lookup_output = str(tool_output)
                         if tool_name == "delete_table_reservation":
                             self.pending_cancellations[session_id] = dict(tool_args)
+                    except (ReservationNotFoundException, ValidationError, TypeError):
+                        tool_output = self._reservation_not_found_message()
+                        if tool_name == "get_table_reservation":
+                            reservation_lookup_output = tool_output
+                    except DatabaseException:
+                        logger.exception("Failed to retrieve a chatbot reservation")
+                        tool_output = "No se pudo consultar la reserva en este momento. Inténtalo más tarde."
+                        if tool_name == "get_table_reservation":
+                            reservation_lookup_output = tool_output
                     except Exception as e:
                         if tool_name == "delete_table_reservation":
                             self.pending_cancellations.pop(session_id, None)
                         if tool_name == "get_table_reservation":
-                            tool_output = "No pude verificar la reserva con esos datos."
+                            tool_output = self._reservation_not_found_message()
+                            reservation_lookup_output = tool_output
                         else:
                             tool_output = f"Error al ejecutar la herramienta {tool_name}: {str(e)}"
                 else:
@@ -221,7 +332,10 @@ class RAGChatbotRunner:
             
             response = await llm_with_tools.ainvoke(messages)
         
-        final_output = response.content if isinstance(response.content, str) else str(response.content)
+        if reservation_lookup_output is not None and not additional_tool_used:
+            final_output = reservation_lookup_output
+        else:
+            final_output = response.content if isinstance(response.content, str) else str(response.content)
         history.add_ai_message(final_output)
         
         return {"output": final_output}
@@ -302,6 +416,18 @@ class RAGChatbotRunner:
             messages.append(message)
         details = "; ".join(dict.fromkeys(messages))
         return f"No he creado ninguna reserva. Revisa los datos: {details}."
+
+    @classmethod
+    def _reservation_update_validation_error(cls, error: ValidationError) -> str:
+        message = cls._reservation_validation_error(error)
+        return message.replace("No he creado ninguna reserva.", "No se ha modificado la reserva.", 1)
+
+    @staticmethod
+    def _reservation_not_found_message() -> str:
+        return (
+            "No se encontró una reserva autorizada con esos datos. Comprueba el código "
+            "de reserva, el email y el teléfono."
+        )
 
 # Exportamos el runner para app/api/chat.py
 rag_chatbot = RAGChatbotRunner()

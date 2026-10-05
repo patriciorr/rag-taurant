@@ -5,10 +5,16 @@ from pymongo import MongoClient
 from langchain_ollama import OllamaEmbeddings
 from app.core.config import settings
 from app.models.menu import Allergen
-from app.models.reservation import ReservationContact, ReservationCreate, ReservationUpdate, ReservationInDB
+from app.models.reservation import (
+    ReservationContact,
+    ReservationCreate,
+    ReservationInDB,
+    ReservationUpdate,
+)
 from app.service.menu import menu_service
 from app.service.reservation import reservation_service
 from app.service.weather import get_restaurant_weather
+from app.core.exceptions import ReservationValidationException
 
 client = MongoClient(settings.MONGODB_URI)
 db = client[settings.DB_NAME]
@@ -101,17 +107,6 @@ def search_info(query: str) -> str:
 
 # --- CRUD RESERVAS ---
 
-def _find_reservation(identifier: str) -> Optional[dict]:
-    """Busca una reserva por reservation_id, email o número de teléfono."""
-    query = {
-        "$or": [
-            {"reservation_id": identifier},
-            {"email": identifier.lower().strip()},
-            {"phone": identifier.strip()}
-        ]
-    }
-    return db["reservations"].find_one(query, {"_id": 0})
-
 def prepare_table_reservation(arguments: dict[str, object]) -> ReservationCreate:
     return ReservationCreate(**arguments)
 
@@ -184,39 +179,86 @@ def get_weather_forecast(date: Optional[str] = None) -> str:
     return get_restaurant_weather(date)
 
 
-@tool
-def edit_table_reservation(
-    identifier: str, 
-    date: Optional[str] = None, 
-    time: Optional[str] = None, 
+async def prepare_table_reservation_update(
+    reservation_id: str,
+    email: str,
+    phone: str,
+    date: Optional[str] = None,
+    time: Optional[str] = None,
     guests: Optional[int] = None,
-    customer_name: Optional[str] = None
+) -> tuple[ReservationInDB, ReservationUpdate]:
+    contact = ReservationContact(email=email, phone=phone)
+    reservation = await reservation_service.get_reservation(reservation_id, contact)
+    if reservation.status != "confirmed":
+        raise ReservationValidationException("Cancelled reservations cannot be modified.")
+
+    update_fields = {
+        key: value
+        for key, value in {"date": date, "time": time, "guests": guests}.items()
+        if value is not None
+    }
+    update = ReservationUpdate(**update_fields)
+    ReservationCreate(
+        customer_name=reservation.customer_name,
+        email=reservation.email,
+        phone=reservation.phone,
+        date=update.date or reservation.date,
+        time=update.time or reservation.time,
+        guests=update.guests or reservation.guests,
+    )
+    return reservation, update
+
+
+def format_table_reservation_update(
+    reservation: ReservationInDB,
+    update: ReservationUpdate,
 ) -> str:
-    """Edita los datos de una reserva existente buscándola por ID, email o teléfono."""
-    reservation = _find_reservation(identifier)
-    if not reservation:
-        return f"No se encontró ninguna reserva para modificar con el identificador '{identifier}'."
-    
-    update_fields = {}
-    if date: update_fields["date"] = date
-    if time: update_fields["time"] = time
-    if guests: update_fields["guests"] = guests
-    if customer_name: update_fields["customer_name"] = customer_name
-    
-    if not update_fields:
-        return "No se especificaron campos para actualizar."
-        
-    try:
-        validated_update = ReservationUpdate(**update_fields)
-        changes = {k: v for k, v in validated_update.model_dump().items() if v is not None}
-        
-        db["reservations"].update_one(
-            {"reservation_id": reservation["reservation_id"]},
-            {"$set": changes}
-        )
-        return f"✅ Reserva '{reservation['reservation_id']}' actualizada correctamente con los nuevos datos: {changes}."
-    except Exception as e:
-        return f"❌ Error de validación al editar la reserva: {str(e)}"
+    changes = []
+    for field, label in (
+        ("date", "Fecha"),
+        ("time", "Hora"),
+        ("guests", "Comensales"),
+    ):
+        value = getattr(update, field)
+        if field not in update.model_fields_set:
+            continue
+        if field == "date":
+            value = value.isoformat()
+            previous = reservation.date.isoformat()
+        elif field == "time":
+            value = value.isoformat(timespec="minutes")
+            previous = reservation.time.isoformat(timespec="minutes")
+        else:
+            previous = str(reservation.guests)
+            value = str(value)
+        changes.append(f"- {label}: {previous} → {value}")
+
+    return (
+        f"Revisa los cambios para la reserva '{reservation.reservation_id}':\n"
+        + "\n".join(changes)
+        + "\nTodavía no se ha modificado. Responde «sí» para confirmar o «no» para descartar."
+    )
+
+
+@tool
+async def edit_table_reservation(
+    reservation_id: str,
+    email: str,
+    phone: str,
+    date: Optional[str] = None,
+    time: Optional[str] = None,
+    guests: Optional[int] = None,
+) -> str:
+    """Prepara cambios de fecha, hora o comensales tras verificar el código, email y teléfono; no modifica la reserva."""
+    reservation, update = await prepare_table_reservation_update(
+        reservation_id=reservation_id,
+        email=email,
+        phone=phone,
+        date=date,
+        time=time,
+        guests=guests,
+    )
+    return format_table_reservation_update(reservation, update)
 
 @tool
 async def delete_table_reservation(reservation_id: str, email: str, phone: str) -> str:
