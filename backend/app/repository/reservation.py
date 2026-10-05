@@ -1,5 +1,5 @@
 # app/repository/reservation.py
-from typing import List, Optional
+from typing import Optional
 from app.core.database import db_instance
 
 class ReservationRepository:
@@ -29,10 +29,6 @@ class ReservationRepository:
 
     async def get_reservation(self, reservation_id: str) -> Optional[dict]:
         return await self.collection.find_one({"reservation_id": reservation_id}, {"_id": 0})
-
-    async def list_reservations(self) -> List[dict]:
-        cursor = self.collection.find({}, {"_id": 0})
-        return [doc async for doc in cursor]
 
     async def update_reservation(self, reservation_id: str, update_data: dict) -> bool:
         result = await self.collection.update_one(

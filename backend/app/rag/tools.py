@@ -2,8 +2,8 @@
 from typing import Optional
 from langchain_core.tools import tool
 from pymongo import MongoClient
-from langchain_ollama import OllamaEmbeddings
 from app.core.config import settings
+from app.rag.embeddings import embeddings_service
 from app.models.menu import Allergen
 from app.models.reservation import (
     ReservationContact,
@@ -18,11 +18,6 @@ from app.core.exceptions import ReservationValidationException
 
 client = MongoClient(settings.MONGODB_URI)
 db = client[settings.DB_NAME]
-
-embeddings_model = OllamaEmbeddings(
-    base_url=settings.OLLAMA_BASE_URL,
-    model=settings.EMBEDDING_MODEL
-)
 
 # --- BÚSQUEDA RAG: MENÚ ---
 @tool
@@ -81,7 +76,7 @@ async def search_menu(
 @tool
 def search_info(query: str) -> str:
     """Busca información institucional del restaurante: ubicación, horarios, políticas de terraza, aparcamiento o normas."""
-    query_vector = embeddings_model.embed_query(query)
+    query_vector = embeddings_service.embed_query(query)
     
     pipeline = [
         {

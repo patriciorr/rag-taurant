@@ -1,6 +1,6 @@
 import json
 import unicodedata
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
@@ -154,7 +154,3 @@ def summarize_retrieval(scores: Sequence[RetrievalScore]) -> RetrievalSummary:
         answerable_queries=len(answerable),
         unanswerable_queries=unanswerable_count,
     )
-
-
-def serialize_score(score: ToolCallScore | GroundingScore | RetrievalScore) -> dict[str, Any]:
-    return asdict(score)
