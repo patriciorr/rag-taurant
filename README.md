@@ -207,12 +207,14 @@ Install the development test dependencies and start only the local MongoDB servi
 
 ```bash
 pip install -r backend/requirements-dev.txt
-docker compose up -d mongodb
+docker compose up --wait mongodb
 cd backend
 python -m pytest -c pytest.ini
 ```
 
-The integration tests use a unique `rag_taurant_test_*` database per test and drop it during cleanup. Embeddings are stubbed, so Ollama is not required. If overriding `TEST_MONGODB_URI`, use a disposable test MongoDB instance; the test databases are deleted automatically.
+The `mongodb` service runs MongoDB Atlas Local from the official `mongodb/mongodb-atlas-local` image and publishes port `27017` for tests run on the host. `--wait` does not return until its health check succeeds. The full test command includes both unit and MongoDB integration tests; Ollama is not required because embeddings are stubbed.
+
+The integration tests use a unique `rag_taurant_test_*` database per test and drop it during cleanup. To use another MongoDB instance, set `TEST_MONGODB_URI` before running the tests and ensure it points to a disposable test deployment; test databases are deleted automatically.
 
 ### Agent Autonomous Tools
 
