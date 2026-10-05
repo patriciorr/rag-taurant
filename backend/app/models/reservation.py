@@ -129,11 +129,11 @@ class ReservationUpdate(ReservationModel):
     time: Optional[Time] = None
     guests: Optional[int] = Field(None, gt=0, le=20, strict=True)
 
-    @field_serializer("date")
+    @field_serializer("date", when_used="json")
     def serialize_date(self, value: Optional[Date]) -> Optional[str]:
         return value.isoformat() if value is not None else None
 
-    @field_serializer("time")
+    @field_serializer("time", when_used="json")
     def serialize_time(self, value: Optional[Time]) -> Optional[str]:
         return value.isoformat(timespec="minutes") if value is not None else None
 

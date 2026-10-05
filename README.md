@@ -31,7 +31,9 @@ The application features a sleek **React + Material UI** frontend served through
 ## ✨ Key Features
 
 - 🤖 **AI-Powered Gourmet Assistant:** Local chatbot powered by **Qwen3 8B** with tool calling and conversational memory.
-- 🥗 **Interactive Digital Menu:** Real-time dish exploration with category filters, price displays, dietary tags (vegan, vegetarian), and allergen warnings.
+- 🥗 **Andalusian digital menu:** A responsive Spanish-first restaurant experience with illustrated entrantes, principales and postres, clear vegetarian/vegan badges, listed allergens and an allergy safety notice.
+- 📅 **Reservation management:** Create, look up, update and cancel reservations. Protected lookup and changes require the reservation code, email and phone.
+- 🪣 **Local photo storage:** Licensed stock images are seeded into a local-only S3-compatible LocalStack bucket; no AWS account or credentials are needed.
 - 🔍 **Vector Search & RAG:** Semantic search over menu items and restaurant information using **MongoDB Atlas Local** vector search and local Ollama embeddings.
 - 🛠️ **Autonomous Agent Tools:**
   - 📖 `search_menu_and_info`: Performs vector similarity search for dish recommendations and details.
@@ -52,6 +54,7 @@ The application features a sleek **React + Material UI** frontend served through
 | **Vite**              | ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)     | Next-generation frontend tooling          |
 | **Material UI (MUI)** | ![MUI](https://img.shields.io/badge/MUI-007FFF?style=for-the-badge&logo=mui&logoColor=white)        | Elegant UI component system and styling   |
 | **Nginx**             | ![Nginx](https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white)  | Reverse proxy & static content web server |
+| **LocalStack 4.4.0** | S3-compatible local development storage | Local menu-image bucket, seeded at startup |
 
 ### Backend, AI & Vector Database
 
@@ -186,6 +189,81 @@ cd frontend
 npm install
 npm run dev
 ```
+
+The Vite development server proxies `/api` to `http://localhost:8000` and
+`/assets` to the local S3 endpoint at `http://localhost:4566`. Start
+LocalStack alongside MongoDB before opening the page to make the locally
+stored photos available:
+
+```bash
+docker compose up -d --wait mongodb localstack
+```
+
+LocalStack runs only for local development/demo and is pinned to
+`localstack/localstack:4.4.0`. Its startup hook idempotently creates the
+`ragtaurant-assets` bucket, applies a local public-read policy, and syncs the
+bundled stock photos. Both Vite and Nginx expose them through the browser-safe
+same-origin `/assets/menu/...` path; the browser never needs a Docker hostname
+or AWS credentials. The LocalStack endpoint is published on
+`127.0.0.1:4566`, not on external interfaces.
+
+For the full application, `docker compose up --wait` also waits for the
+LocalStack image seed to finish before starting the frontend. The AI assistant
+is still available from the floating chat button; browsing the menu itself
+does not include search or diet/allergen filters.
+
+The curated catalog seed adds or updates only its own stable dish IDs and
+rebuilds embeddings for changed seed records. Other existing menu documents
+are retained.
+
+### Frontend Checks
+
+```bash
+cd frontend
+npm ci
+npm test
+npm run lint
+npm run build
+```
+
+Component and API contract tests use Vitest, React Testing Library and a DOM
+test environment. The complete suite covers menu categories and dietary
+labels, allergen guidance, reservation creation/lookup/update/cancellation,
+API contact headers, and accessible error messages.
+
+### Reservation policy
+
+Reservations accept 1–20 guests, on the hour or half-hour between 12:00 and
+23:00, on today or any of the next 13 days in the restaurant's Europe/Madrid
+timezone. The UI enforces matching date/time/party-size inputs. A returned
+reservation code is needed along with the original email and phone for lookup,
+updates and cancellation. The displayed menu allergen information and dish
+photos are illustrative; customers with allergies must always confirm
+ingredients and cross-contact with restaurant staff.
+
+See [photo source and licensing details](./docs/image-attribution.md) for the
+stock-image asset list.
+
+---
+
+## 🧪 Running the tests
+
+Run everything from the repository root. The backend integration tests need the
+local MongoDB container; Ollama is not required.
+
+```bash
+# Frontend (Vitest + React Testing Library)
+cd frontend && npm ci && npm test && npm run lint && cd ..
+
+# Backend (pytest, unit + MongoDB integration)
+pip install -r backend/requirements-dev.txt
+docker compose up --wait mongodb
+cd backend && python -m pytest -c pytest.ini
+```
+
+See [Frontend Checks](#frontend-checks) and [Backend Tests](#backend-tests) for
+what each suite covers and how to point the integration tests at another
+MongoDB instance.
 
 ---
 

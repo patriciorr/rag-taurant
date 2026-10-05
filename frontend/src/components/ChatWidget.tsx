@@ -50,19 +50,27 @@ export default function ChatWidget() {
   };
 
   return (
-    <Box sx={{ position: 'fixed', bottom: 24, right: 24, zIndex: 1000 }}>
+    <Box sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1000 }}>
       {!open && (
-        <Fab color="secondary" onClick={() => setOpen(true)} aria-label="chat">
+        <Fab
+          onClick={() => setOpen(true)}
+          aria-label="Abrir el chat"
+          sx={{
+            bgcolor: "var(--gold-light)",
+            color: "var(--green)",
+            "&:hover": { bgcolor: "#d8ad78" },
+          }}
+        >
           <SmartToyIcon />
         </Fab>
       )}
 
       <Slide direction="up" in={open} mountOnEnter unmountOnExit>
-        <Paper elevation={8} sx={{ width: 360, height: 500, display: 'flex', flexDirection: 'column', borderRadius: 3, overflow: 'hidden' }}>
+        <Paper elevation={8} sx={{ width: { xs: 'calc(100vw - 32px)', sm: 360 }, maxWidth: 'calc(100vw - 32px)', height: { xs: 'min(500px, calc(100dvh - 100px))', sm: 500 }, display: 'flex', flexDirection: 'column', borderRadius: 3, overflow: 'hidden', fontFamily: 'var(--sans)', '& .MuiTypography-root, & .MuiInputBase-root': { fontFamily: 'var(--sans)' }, '& .MuiInputBase-root': { fontSize: '1rem' } }}>
           {/* Header */}
-          <Box sx={{ p: 2, bgcolor: 'primary.main', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6" sx={{ fontSize: '1.1rem' }}>Asistente Gourmet</Typography>
-            <IconButton size="small" onClick={() => setOpen(false)} sx={{ color: 'white' }}>
+          <Box sx={{ p: 2, bgcolor: 'var(--green)', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6" sx={{ fontSize: '1.1rem', fontFamily: 'var(--serif) !important' }}>Asistente Gourmet</Typography>
+            <IconButton size="small" onClick={() => setOpen(false)} sx={{ color: 'white' }} aria-label="Cerrar el chat">
               <CloseIcon />
             </IconButton>
           </Box>
@@ -78,17 +86,17 @@ export default function ChatWidget() {
                       p: 1.5,
                       maxWidth: '80%',
                       borderRadius: 2,
-                      bgcolor: msg.sender === 'user' ? 'secondary.main' : 'white',
-                      color: msg.sender === 'user' ? 'white' : 'text.primary',
+                      bgcolor: msg.sender === 'user' ? 'var(--gold)' : 'white',
+                      color: msg.sender === 'user' ? 'var(--green)' : 'text.primary',
                     }}
                   >
-                    <ListItemText primary={msg.text} primaryTypographyProps={{ variant: 'body2' }} />
+                    <ListItemText primary={msg.text} primaryTypographyProps={{ variant: 'body1' }} />
                   </Paper>
                 </ListItem>
               ))}
               {loading && (
                 <Box sx={{ display: 'flex', justifyContent: 'center', my: 1 }}>
-                  <CircularProgress size={24} color="secondary" />
+                  <CircularProgress size={24} sx={{ color: 'var(--gold)' }} />
                 </Box>
               )}
               <div ref={messagesEndRef} />
@@ -105,7 +113,11 @@ export default function ChatWidget() {
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
             />
-            <IconButton color="primary" onClick={handleSend} disabled={loading}>
+            <IconButton
+              onClick={handleSend}
+              disabled={loading}
+              sx={{ color: 'var(--gold-light)', '&:hover': { color: '#d8ad78' } }}
+            >
               <SendIcon />
             </IconButton>
           </Box>

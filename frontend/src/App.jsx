@@ -1,172 +1,69 @@
-// src/App.jsx
 import { useEffect, useState } from "react";
-import {
-  ThemeProvider,
-  CssBaseline,
-  AppBar,
-  Toolbar,
-  Typography,
-  Container,
-  Grid,
-  Card,
-  CardContent,
-  Chip,
-  Box,
-  CircularProgress,
-  Avatar,
-} from "@mui/material";
-import RestaurantMenuIcon from "@mui/icons-material/RestaurantMenu";
-import { theme } from "./theme/theme";
-import { getMenu } from "./services/api";
+import EmailIcon from "@mui/icons-material/Email";
+import GitHubIcon from "@mui/icons-material/GitHub";
+import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import ChatWidget from "./components/ChatWidget";
+import MenuSection from "./components/MenuSection";
+import ReservationSection from "./components/ReservationSection";
+import { getMenu } from "./services/api";
 
 export default function App() {
   const [menu, setMenu] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [menuError, setMenuError] = useState("");
 
   useEffect(() => {
     getMenu()
-      .then((data) => setMenu(data))
-      .catch((err) => console.error("Error cargando menú:", err))
+      .then(setMenu)
+      .catch(() => setMenuError("No pudimos cargar la carta. Inténtalo de nuevo más tarde."))
       .finally(() => setLoading(false));
   }, []);
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <div className="site-shell">
+      <header className="site-header">
+        <a className="brand" href="#inicio" aria-label="RAGtaurant, inicio">
+          <span className="brand-mark" aria-hidden="true">R</span>
+          <span>RAG<span>taurant</span></span>
+        </a>
+        <nav aria-label="Navegación principal">
+          <a href="#carta">La carta</a>
+        </nav>
+        <a className="header-booking" href="#reservas">Reserva tu mesa <span aria-hidden="true">↗</span></a>
+      </header>
 
-      {/* Navbar */}
-      <AppBar position="static">
-        <Toolbar>
-          <RestaurantMenuIcon sx={{ mr: 2, color: "secondary.main" }} />
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{ flexGrow: 1, color: "white" }}
-          >
-            Restaurante Gourmet
-          </Typography>
-        </Toolbar>
-      </AppBar>
+      <main>
+        <section className="hero" id="inicio">
+          <div className="hero-shade" />
+          <div className="hero-content">
+            <p className="eyebrow">San Juan del Puerto · Huelva</p>
+            <h1>El sur se sirve<br /><em>en la mesa.</em></h1>
+            <p className="hero-copy">Producto de aquí, fuego lento y el placer de compartir. Cocina andaluza con alma choquera.</p>
+            <a className="button button-light" href="#carta">Descubre nuestra carta <span aria-hidden="true">↓</span></a>
+          </div>
+          <span className="hero-caption">Una mesa, muchas historias.</span>
+        </section>
 
-      {/* Hero Section */}
-      <Box
-        sx={{
-          bgcolor: "primary.main",
-          color: "white",
-          py: 8,
-          textAlign: "center",
-        }}
-      >
-        <Container maxWidth="md">
-          <Typography
-            variant="h2"
-            gutterBottom
-            sx={{ color: "secondary.main" }}
-          >
-            Sabores Inolvidables
-          </Typography>
-          <Typography variant="h6" paragraph sx={{ opacity: 0.9 }}>
-            Cocina mediterránea tradicional con toques de vanguardia.
-          </Typography>
-        </Container>
-      </Box>
+        <section className="intro" aria-label="Nuestra cocina">
+          <p className="eyebrow">Cocina honesta, sabor a sur</p>
+          <h2>De la huerta, del mar<br />y de nuestra memoria.</h2>
+          <p>Recetas de siempre, ingredientes de temporada y una mesa abierta para todos.</p>
+        </section>
 
-      {/* Menú de Platos */}
-      <Container sx={{ py: 6 }} maxWidth="lg">
-        <Typography
-          variant="h4"
-          component="h2"
-          gutterBottom
-          align="center"
-          sx={{ mb: 4 }}
-        >
-          Nuestra Carta
-        </Typography>
+        <MenuSection menu={menu} loading={loading} error={menuError} />
+        <ReservationSection />
+      </main>
 
-        {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-            <CircularProgress color="secondary" />
-          </Box>
-        ) : (
-          <Grid container spacing={4}>
-            {menu.map((dish) => (
-              <Grid item key={dish.id} xs={12} sm={6} md={4}>
-                <Card
-                  sx={{
-                    height: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    borderRadius: 2,
-                  }}
-                >
-                  <CardContent sx={{ flexGrow: 1 }}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "baseline",
-                        mb: 1,
-                      }}
-                    >
-                      <Typography variant="h6" component="h3">
-                        {dish.name}
-                      </Typography>
-                      <Typography
-                        variant="subtitle1"
-                        color="secondary.main"
-                        sx={{ fontWeight: "bold" }}
-                      >
-                        {dish.price.toFixed(2)}€
-                      </Typography>
-                    </Box>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      paragraph
-                    >
-                      {dish.description}
-                    </Typography>
-                    <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
-                      {dish.is_vegan && (
-                        <Chip
-                          label="Vegano"
-                          size="small"
-                          color="success"
-                          variant="outlined"
-                        />
-                      )}
-                      {dish.is_vegetarian && (
-                        <Chip
-                          label="Vegetariano"
-                          size="small"
-                          color="success"
-                          variant="outlined"
-                        />
-                      )}
-                      {dish.allergens.map((a) => (
-                        <Chip
-                          key={a}
-                          label={a}
-                          avatar={
-                            <Avatar alt={a} src={`/alergenos/${a}.svg`} />
-                          }
-                          size="small"
-                          color="warning"
-                          variant="outlined"
-                        />
-                      ))}
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        )}
-      </Container>
-
-      {/* Widget de Chat RAG */}
+      <footer className="site-footer">
+        <a className="brand brand-footer" href="#inicio"><span className="brand-mark" aria-hidden="true">R</span><span>RAG<span>taurant</span></span></a>
+        <p>Hecho con calma por Patricio Rodríguez.</p>
+        <div className="footer-social">
+          <a href="mailto:patriciorodriguezramirez@gmail.com" aria-label="Enviar un email a Patricio Rodríguez"><EmailIcon /></a>
+          <a href="https://www.linkedin.com/in/patriciorr" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn de Patricio Rodríguez"><LinkedInIcon /></a>
+          <a href="https://github.com/patriciorr" target="_blank" rel="noopener noreferrer" aria-label="GitHub de Patricio Rodríguez"><GitHubIcon /></a>
+        </div>
+      </footer>
       <ChatWidget />
-    </ThemeProvider>
+    </div>
   );
 }

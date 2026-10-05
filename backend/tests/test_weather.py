@@ -36,16 +36,16 @@ def test_forecast_requests_14_days_for_configured_restaurant_location(monkeypatc
     today = date(2030, 2, 28)
     observed = {}
     stub_open_meteo(monkeypatch, forecast_payload(today), observed)
-    monkeypatch.setattr(weather.settings, "RESTAURANT_LAT", 37.4)
-    monkeypatch.setattr(weather.settings, "RESTAURANT_LON", -5.9)
+    monkeypatch.setattr(weather.settings, "RESTAURANT_LAT", 37.32)
+    monkeypatch.setattr(weather.settings, "RESTAURANT_LON", -6.84)
 
     result = weather.get_restaurant_weather(today=today)
 
     assert observed == {
         "url": "https://api.open-meteo.com/v1/forecast",
         "params": {
-            "latitude": 37.4,
-            "longitude": -5.9,
+            "latitude": 37.32,
+            "longitude": -6.84,
             "daily": ",".join(weather.DAILY_FIELDS),
             "forecast_days": 14,
             "timezone": "auto",

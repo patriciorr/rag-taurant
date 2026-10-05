@@ -1,111 +1,186 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap");
+
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
+  font-family: "DM Sans", sans-serif;
+  color: #26352c;
+  background: #f8f5ed;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  --ink: #26352c;
+  --green: #304b3d;
+  --cream: #f8f5ed;
+  --gold: #c99455;
+  --gold-light: #e3bd8c;
+  --muted: #6c756d;
+  --serif: "Playfair Display", Georgia, serif;
+  --sans: "DM Sans", system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+body { margin: 0; min-width: 320px; }
+button, input, select { font: inherit; }
+a { color: inherit; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #bb7a35; outline-offset: 3px; }
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+.site-shell { width: 100%; overflow: hidden; }
+.site-header { height: 76px; padding: 0 clamp(20px, 7vw, 112px); display: flex; align-items: center; justify-content: space-between; background: var(--cream); }
+.brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-size: 20px; font-weight: 700; letter-spacing: -.8px; color: var(--green); }
+.brand > span:last-child > span { font-weight: 400; }
+.brand-mark { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--gold); color: var(--gold); font-family: var(--serif); font-size: 22px; }
+.site-header nav { display: flex; gap: 38px; margin-left: auto; margin-right: 24px; }
+.site-header nav a, .header-booking { text-decoration: none; font-size: 15px; font-weight: 600; }
+.site-header nav a:hover { color: #9b6334; }
+.header-booking { color: var(--green); border-bottom: 1px solid var(--gold); padding: 8px 0; }
+.header-booking span { color: var(--gold); margin-left: 5px; }
+
+.hero { position: relative; min-height: min(690px, 76vw); min-height: clamp(500px, 58vw, 690px); display: flex; align-items: center; color: #fff; background: #29372e url("/assets/menu/hero.jpg") center 52% / cover no-repeat; }
+.hero-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(21, 34, 27, .78) 0%, rgba(21, 34, 27, .56) 45%, rgba(21, 34, 27, .08) 100%), linear-gradient(0deg, rgba(18, 26, 21, .27), transparent 42%); }
+.hero-content { position: relative; max-width: 670px; margin-left: clamp(24px, 13vw, 195px); padding: 55px 24px 80px 0; }
+.eyebrow { color: var(--gold); font-size: 12px; font-weight: 700; letter-spacing: 2.6px; text-transform: uppercase; }
+.hero .eyebrow { color: #e9c99e; }
+.hero h1, .reservation-copy h2 { margin: 22px 0; font: 500 clamp(52px, 7vw, 88px)/1.07 var(--serif); letter-spacing: -2px; }
+.hero h1 em, .reservation-copy h2 em { color: #e3bd8c; font-weight: 500; }
+.hero-copy { max-width: 430px; margin: 0 0 30px; color: rgba(255,255,255,.86); font-size: 17px; line-height: 1.8; }
+.button { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 22px; padding: 0 20px; border: 0; cursor: pointer; font-size: 14px; font-weight: 700; text-decoration: none; transition: background .2s, transform .2s; }
+.button:hover:not(:disabled) { transform: translateY(-1px); }
+.button:disabled { cursor: wait; opacity: .62; }
+.button-light { color: var(--ink); background: #f4e7d1; }
+.button-light:hover { background: #fff3df; }
+.hero-caption { position: absolute; right: clamp(20px, 7vw, 112px); bottom: 32px; font-family: var(--serif); font-style: italic; font-size: 15px; color: rgba(255,255,255,.8); }
+
+.intro { padding: 112px 20px 105px; text-align: center; background: var(--cream); }
+.intro .eyebrow { margin: 0 0 22px; }
+.intro h2, .section-heading h2 { margin: 0; color: var(--green); font: 500 clamp(34px, 4.3vw, 51px)/1.2 var(--serif); letter-spacing: -.8px; }
+.intro > p:last-child { margin: 18px auto 0; color: var(--muted); font-size: 16px; line-height: 1.7; }
+.section-wrap { max-width: 1160px; margin: 0 auto; padding: 22px 28px 110px; }
+.menu-section { scroll-margin-top: 40px; }
+.section-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 38px; }
+.section-heading .eyebrow { margin: 0 0 13px; }
+.section-aside { max-width: 260px; margin: 0 0 5px; color: var(--muted); font-size: 15px; line-height: 1.7; }
+.category-tabs { display: flex; gap: 30px; margin-bottom: 32px; border-bottom: 1px solid #deded3; }
+.category-tab { position: relative; padding: 0 0 15px; border: 0; color: #7b817a; background: transparent; cursor: pointer; font-size: 15px; }
+.category-tab.active { color: var(--green); font-weight: 700; }
+.category-tab.active::after { position: absolute; right: 0; bottom: -1px; left: 0; height: 2px; background: var(--gold); content: ""; }
+.dish-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 22px; min-height: 185px; }
+.dish-card { overflow: hidden; background: #fff; }
+.dish-photo-wrap { position: relative; height: 225px; overflow: hidden; background: #e9e5d9; }
+.dish-photo { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
+.dish-card:hover .dish-photo { transform: scale(1.035); }
+.dish-diet-badge { position: absolute; top: 12px; left: 12px; padding: 7px 10px; color: #fff; background: rgba(48, 75, 61, .94); font-size: 12px; font-weight: 700; letter-spacing: .3px; }
+.dish-photo-fallback { display: grid; place-items: center; color: #d5c8b1; font: 60px var(--serif); }
+.dish-body { padding: 19px 18px 17px; }
+.dish-title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.dish-title-row h3 { margin: 0; color: var(--ink); font: 600 18px/1.35 var(--serif); }
+.dish-price { flex: 0 0 auto; color: #976637; font-size: 15px; font-weight: 700; white-space: nowrap; }
+.dish-description { min-height: 44px; margin: 10px 0 13px; color: var(--muted); font-size: 14px; line-height: 1.75; }
+.dish-allergens { display: flex; flex-direction: column; align-items: flex-start; flex-wrap: wrap; gap: 0; margin: 12px 0 0; color: #786e60; font-size: 14px; line-height: 1.5; }
+.dish-allergens strong { color: #8a552f; }
+.allergen-icons { display: inline-flex; flex-wrap: wrap; gap: 0; margin: 0 0 0 -12px; padding: 0; list-style: none; }
+.allergen-icons li { display: grid; width: 60px; place-items: center; }
+.allergen-icons img { display: block; width: 60px; height: auto; aspect-ratio: 262 / 372; object-fit: contain; }
+.allergen-note { margin: 36px 0 0; padding: 17px 20px; border-left: 2px solid var(--gold); color: #666e66; background: #f0ede4; font-size: 14px; line-height: 1.8; }
+.allergen-note strong { color: var(--ink); }
+.status-message { grid-column: 1 / -1; padding: 35px 0; color: var(--muted); text-align: center; }
+.error-message { color: #a33124; }
+
+.reservation-section { padding: 95px 24px 108px; color: #f7f4eb; background: var(--green); scroll-margin-top: 20px; }
+.reservation-inner { display: grid; grid-template-columns: minmax(250px, .78fr) minmax(0, 1.22fr); gap: clamp(40px, 8vw, 112px); max-width: 1080px; margin: auto; }
+.reservation-copy { align-self: start; position: sticky; top: 95px; }
+.reservation-copy .eyebrow { color: #e3bd8c; }
+.reservation-copy h2 { margin: 18px 0 23px; font-size: clamp(42px, 5vw, 60px); }
+.reservation-copy > p:not(.eyebrow) { max-width: 330px; color: rgba(255,255,255,.73); font-size: 15px; line-height: 1.9; }
+.reservation-copy .hours-note { margin-top: 27px; color: #e3bd8c; font-size: 13px; }
+.reservation-panels { display: grid; gap: 18px; }
+.reservation-card { padding: 25px; color: var(--ink); background: var(--cream); }
+.reservation-card h3 { margin: 0; color: var(--green); font: 600 23px var(--serif); }
+.form-intro { margin: 7px 0 19px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.reservation-card label { display: flex; flex-direction: column; gap: 6px; margin-bottom: 13px; color: #49554b; font-size: 13px; font-weight: 600; }
+.reservation-card input, .reservation-card select { width: 100%; height: 42px; padding: 0 11px; border: 1px solid #d8d9d1; border-radius: 0; color: var(--ink); background: #fff; font-size: 14px; }
+.reservation-card input::placeholder { color: #9ba098; }
+.date-input-wrap { position: relative; }
+.date-trigger { display: flex; align-items: center; justify-content: space-between; width: 100%; height: 42px; padding: 0 11px; color: var(--ink); background: #fff; border: 1px solid #d8d9d1; border-radius: 0; font-size: 14px; font-weight: 400; cursor: pointer; }
+.date-trigger.date-input-placeholder { color: #727b72; }
+.date-popover { position: absolute; z-index: 20; top: calc(100% + 4px); left: 0; width: 264px; padding: 12px; color: var(--ink); background: #fff; border: 1px solid #d8d9d1; box-shadow: 0 12px 30px rgba(0,0,0,.2); }
+.date-popover-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; text-transform: capitalize; }
+.date-popover-head button { width: 30px; height: 30px; color: var(--green); background: none; border: 0; font-size: 20px; cursor: pointer; }
+.date-popover-head button:disabled { color: #bbb; cursor: default; }
+.date-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
+.date-weekday { padding: 4px 0; color: #727b72; font-size: 13px; font-weight: 600; }
+.reservation-card .date-day { height: 32px; padding: 0; color: var(--ink); background: none; border: 0; border-radius: 50%; font-size: 14px; cursor: pointer; }
+.reservation-card .date-day:hover:not(:disabled) { background: #f1e6d6; }
+.reservation-card .date-day:disabled { color: #c8cbc5; cursor: default; }
+.reservation-card .date-day.selected { color: #fff; background: var(--gold); }
+.reservation-card input[type="number"] { accent-color: var(--gold); }
+.reservation-card input[type="number"]::-webkit-inner-spin-button { opacity: 1; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+.button-dark { width: 100%; margin-top: 5px; color: #fff; background: var(--green); }
+.button-dark:hover { background: #42634f; }
+.button-outline { width: 100%; color: var(--green); border: 1px solid #a7b0a5; background: transparent; }
+.button-outline:hover { background: #eeece4; }
+.button-danger { color: #923d32; border: 1px solid #d8a39b; background: transparent; }
+.button-danger:hover { background: #f8e8e5; }
+.reservation-details { margin-top: 18px; padding-top: 15px; border-top: 1px solid #deded3; color: #4f5b51; font-size: 14px; line-height: 1.7; }
+.reservation-details p { margin: 0 0 5px; }
+.reservation-edit { margin-top: 16px; padding-top: 13px; border-top: 1px solid #deded3; }
+.reservation-edit .edit-heading { margin-bottom: 12px; color: var(--green); font-weight: 700; }
+.reservation-actions { display: flex; flex-direction: column; gap: 8px; }
+.form-feedback { margin: 0; padding: 13px 16px; background: #f8f5ed; font-size: 14px; line-height: 1.6; }
+.success-message { color: #3d6748; }
+
+.site-footer { min-height: 115px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 24px clamp(20px, 7vw, 112px); color: #dce0d7; background: #20372a; }
+.brand-footer { color: #f6f2e7; font-size: 17px; }
+.brand-footer .brand-mark { width: 29px; height: 29px; font-size: 19px; }
+.site-footer p { color: #c5cec3; font-size: 13px; }
+.footer-social { display: flex; gap: 14px; }
+.footer-social a { display: inline-flex; color: var(--gold-light); transition: color .2s; }
+.footer-social a:hover { color: #f6f2e7; }
+.footer-social svg { font-size: 22px; }
+
+@media (max-width: 760px) {
+  .site-header { height: 66px; padding: 0 19px; }
+  .brand { font-size: 18px; }
+  .site-header nav { gap: 15px; margin-right: 0; }
+  .site-header nav a { font-size: 13px; }
+  .header-booking { margin-left: 12px; font-size: 13px; white-space: nowrap; }
+  .hero { min-height: 600px; background-position: 58% center; }
+  .hero-shade { background: linear-gradient(90deg, rgba(21, 34, 27, .73), rgba(21, 34, 27, .24)), linear-gradient(0deg, rgba(18,26,21,.35), transparent 50%); }
+  .hero-content { margin-left: 25px; padding: 40px 22px 65px 0; }
+  .hero h1 { font-size: clamp(53px, 11vw, 76px); }
+  .hero-copy { max-width: 330px; font-size: 16px; }
+  .hero-caption { bottom: 20px; font-size: 13px; }
+  .intro { padding: 82px 22px; }
+  .section-wrap { padding: 20px 20px 80px; }
+  .section-heading { display: block; margin-bottom: 27px; }
+  .section-aside { margin-top: 10px; }
+  .category-tabs { justify-content: space-between; gap: 12px; margin-bottom: 25px; }
+  .category-tab { font-size: 14px; }
+  .dish-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 13px; }
+  .dish-photo-wrap { height: clamp(145px, 35vw, 225px); }
+  .dish-body { padding: 15px 13px; }
+  .dish-title-row { align-items: start; gap: 7px; }
+  .dish-title-row h3 { font-size: 16px; }
+  .dish-price { font-size: 13px; }
+  .dish-description { font-size: 13px; }
+  .reservation-section { padding: 75px 19px 80px; }
+  .reservation-inner { display: block; }
+  .reservation-copy { position: static; margin-bottom: 34px; }
+  .reservation-copy h2 { font-size: 49px; }
+  .reservation-card { padding: 21px 17px; }
+  .site-footer { flex-wrap: wrap; justify-content: center; padding: 24px; text-align: center; }
+  .site-footer p { width: 100%; order: 3; margin: 0; }
 }
 
-body {
-  margin: 0;
+@media (max-width: 420px) {
+  .site-header nav { display: none; }
+  .header-booking { margin-left: auto; font-size: 12px; }
+  .dish-grid { grid-template-columns: 1fr; }
+  .dish-photo-wrap { height: 230px; }
+  .dish-description { min-height: 0; }
+  .form-grid { grid-template-columns: 1fr; gap: 0; }
 }
 
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }

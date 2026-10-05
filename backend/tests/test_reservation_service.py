@@ -120,6 +120,32 @@ async def test_patch_reservation_changes_only_editable_fields(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_patch_reservation_validates_and_persists_date_and_time_as_typed_values(monkeypatch):
+    service = ReservationService()
+    updates = {}
+
+    async def get_reservation(reservation_id):
+        return reservation_document()
+
+    async def update_reservation(reservation_id, update_data):
+        updates.update(update_data)
+        return True
+
+    monkeypatch.setattr(reservation_module.reservation_repository, "get_reservation", get_reservation)
+    monkeypatch.setattr(reservation_module.reservation_repository, "update_reservation", update_reservation)
+
+    updated = await service.update_reservation(
+        "RES-1",
+        ReservationUpdate(date="2030-03-01", time="19:00"),
+        ReservationContact(email="ana@example.com", phone="+34612345678"),
+    )
+
+    assert updates == {"date": "2030-03-01", "time": "19:00"}
+    assert updated.date.isoformat() == "2030-03-01"
+    assert updated.time.isoformat(timespec="minutes") == "19:00"
+
+
+@pytest.mark.asyncio
 async def test_duplicate_contact_for_the_same_day_becomes_a_conflict(monkeypatch):
     service = ReservationService()
 

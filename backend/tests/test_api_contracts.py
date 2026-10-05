@@ -37,6 +37,33 @@ def test_menu_validation_errors_have_the_shared_error_code(client):
     assert response.json()["code"] == "VALIDATION_ERROR"
 
 
+def test_menu_image_reference_is_exposed_through_the_menu_api(client, monkeypatch):
+    async def list_menu():
+        return [
+            {
+                **menu_item_response(),
+                "image_url": "/assets/menu/gazpacho.jpg",
+            }
+        ]
+
+    monkeypatch.setattr(menu_api.menu_service, "list_menu", list_menu)
+
+    response = client.get("/api/v1/menu/")
+
+    assert response.status_code == 200
+    assert response.json()[0]["image_url"] == "/assets/menu/gazpacho.jpg"
+
+
+def test_menu_api_rejects_external_image_urls(client):
+    response = client.patch(
+        "/api/v1/menu/dish-1",
+        json={"image_url": "http://localstack:4566/ragtaurant-assets/menu/gazpacho.jpg"},
+    )
+
+    assert response.status_code == 422
+    assert response.json()["code"] == "VALIDATION_ERROR"
+
+
 def test_chat_endpoint_awaits_the_chatbot_runner(client, monkeypatch):
     async def invoke(input_data, config):
         assert input_data == {"input": "Hola"}

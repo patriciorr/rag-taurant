@@ -124,6 +124,18 @@ def test_reservation_update_can_change_only_guest_count():
     assert update.model_dump(exclude_unset=True) == {"guests": 4}
 
 
+def test_reservation_update_keeps_date_and_time_typed_for_service_validation():
+    update = ReservationUpdate(date="2030-03-01", time="19:00")
+
+    values = update.model_dump(exclude_unset=True)
+
+    assert values == {"date": date(2030, 3, 1), "time": time(19, 0)}
+    assert update.model_dump(mode="json", exclude_unset=True) == {
+        "date": "2030-03-01",
+        "time": "19:00",
+    }
+
+
 def test_reservation_update_does_not_allow_changing_contact_details():
     with pytest.raises(ValidationError):
         ReservationUpdate(email="other@example.com")

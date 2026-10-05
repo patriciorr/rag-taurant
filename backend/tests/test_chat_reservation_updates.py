@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, time, timezone
 from types import SimpleNamespace
 from zoneinfo import ZoneInfo
 
@@ -84,7 +84,7 @@ async def test_reservation_edit_is_authorized_summarized_and_applied_only_after_
 
     assert "se ha modificado" in completed["output"].lower()
     assert updates == [
-        ("RES-1", {"date": "2030-03-01", "time": "19:00", "guests": 4}, "ana@example.com", "+34612345678")
+        ("RES-1", {"date": date(2030, 3, 1), "time": time(19, 0), "guests": 4}, "ana@example.com", "+34612345678")
     ]
 
 

@@ -37,6 +37,11 @@ class MenuItemBase(MenuModel):
     is_vegan: bool = Field(default=False)
     is_vegetarian: bool = Field(default=False)
     available: bool = Field(default=True)
+    image_url: Optional[str] = Field(
+        default=None,
+        pattern=r"^/assets/menu/[a-z0-9-]+\.jpg$",
+        json_schema_extra={"example": "/assets/menu/gazpacho.jpg"},
+    )
 
 class MenuItemCreate(MenuItemBase):
     pass
@@ -50,6 +55,11 @@ class MenuItemReplace(MenuModel):
     is_vegan: bool
     is_vegetarian: bool
     available: bool
+    image_url: Optional[str] = Field(
+        default=None,
+        pattern=r"^/assets/menu/[a-z0-9-]+\.jpg$",
+        json_schema_extra={"example": "/assets/menu/gazpacho.jpg"},
+    )
 
 class MenuItemUpdate(MenuModel):
     name: Optional[str] = Field(None, min_length=1, max_length=120)
@@ -60,6 +70,11 @@ class MenuItemUpdate(MenuModel):
     is_vegan: Optional[bool] = None
     is_vegetarian: Optional[bool] = None
     available: Optional[bool] = None
+    image_url: Optional[str] = Field(
+        default=None,
+        pattern=r"^/assets/menu/[a-z0-9-]+\.jpg$",
+        json_schema_extra={"example": "/assets/menu/gazpacho.jpg"},
+    )
 
     @model_validator(mode="after")
     def validate_patch(self):

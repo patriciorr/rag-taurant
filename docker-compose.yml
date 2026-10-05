@@ -41,6 +41,26 @@ services:
       timeout: 5s
       retries: 5
 
+  localstack:
+    image: localstack/localstack:4.4.0
+    container_name: localstack_restaurant
+    environment:
+      - SERVICES=s3
+    ports:
+      - "127.0.0.1:4566:4566"
+    volumes:
+      - ./docker/localstack/seed-assets.sh:/etc/localstack/init/ready.d/10-seed-assets.sh:ro
+      - ./frontend/public/assets/menu:/opt/ragtaurant-assets:ro
+    networks:
+      - restaurant-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "awslocal s3api head-object --bucket ragtaurant-assets --key menu/hero.jpg >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
+
   backend:
     build:
       context: ./backend
@@ -75,7 +95,10 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_started
+      localstack:
+        condition: service_healthy
     networks:
       - restaurant-net
     restart: unless-stopped

@@ -5,6 +5,7 @@ import pytest
 
 from app.repository.reservation import reservation_repository
 
+from app.core import init_db
 from app.service import menu as menu_module
 
 
@@ -64,6 +65,36 @@ async def test_menu_crud_uses_real_mongo_and_stubbed_embeddings(mongo_api_client
     deleted_response = await mongo_api_client.delete(f"/api/v1/menu/{dish_id}")
     assert deleted_response.status_code == 204
     assert (await mongo_api_client.get(f"/api/v1/menu/{dish_id}")).status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_curated_menu_seed_is_idempotent_and_preserves_custom_documents(
+    mongo_api_client,
+    monkeypatch,
+):
+    collection = init_db.db_instance.db["menu"]
+    await collection.insert_one({"id": "custom-dish", "name": "Keep this menu item"})
+    embedding_calls = []
+
+    async def get_embeddings_batch(texts):
+        embedding_calls.append(texts)
+        return [[float(index)] for index, _ in enumerate(texts)]
+
+    monkeypatch.setattr(init_db, "get_embeddings_batch", get_embeddings_batch)
+
+    await init_db.seed_initial_menu()
+
+    first_count = await collection.count_documents({})
+    assert first_count == len(init_db.INITIAL_MENU) + 1
+    assert await collection.find_one({"id": "custom-dish"})
+    assert len(embedding_calls) == 1
+
+    await init_db.seed_initial_menu()
+
+    assert await collection.count_documents({}) == first_count
+    assert len(embedding_calls) == 1
+    seeded_document = await collection.find_one({"id": "1"})
+    assert seeded_document["image_url"] == "/assets/menu/gazpacho.jpg"
 
 
 @pytest.mark.asyncio

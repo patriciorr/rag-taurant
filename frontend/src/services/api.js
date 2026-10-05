@@ -16,6 +16,36 @@ export const getMenu = async () => {
   return response.data;
 };
 
+export const createReservation = async (reservation) => {
+  const response = await api.post('/reservations/', reservation);
+  return response.data;
+};
+
+const reservationHeaders = ({ email, phone }) => ({
+  'X-Reservation-Email': email,
+  'X-Reservation-Phone': phone,
+});
+
+export const getReservation = async (reservationId, contact) => {
+  const response = await api.get(`/reservations/${encodeURIComponent(reservationId)}`, {
+    headers: reservationHeaders(contact),
+  });
+  return response.data;
+};
+
+export const updateReservation = async (reservationId, update, contact) => {
+  const response = await api.patch(`/reservations/${encodeURIComponent(reservationId)}`, update, {
+    headers: reservationHeaders(contact),
+  });
+  return response.data;
+};
+
+export const cancelReservation = async (reservationId, contact) => {
+  await api.delete(`/reservations/${encodeURIComponent(reservationId)}`, {
+    headers: reservationHeaders(contact),
+  });
+};
+
 export const sendChatMessage = async (message, sessionId) => {
   const response = await api.post('/chat/', {
     message,

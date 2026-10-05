@@ -12,8 +12,8 @@ class Settings(BaseSettings):
     OLLAMA_BASE_URL: str = "http://localhost:11435"
     OLLAMA_MODEL: str = "qwen3:8b"
     
-    RESTAURANT_LAT: float = 37.3891
-    RESTAURANT_LON: float = -5.9845
+    RESTAURANT_LAT: float = 37.3167
+    RESTAURANT_LON: float = -6.8414
 
     MONGODB_URI: str = "mongodb://localhost:27017/?directConnection=true"
     DB_NAME: str = "rag_taurant"
