@@ -2,7 +2,7 @@
 import uuid
 from typing import List, Dict, Any
 from pymongo.errors import PyMongoError
-from app.models.menu import MenuItem, MenuItemCreate, MenuItemUpdate
+from app.models.menu import MenuItem, MenuItemCreate, MenuItemReplace, MenuItemUpdate
 from app.repository.menu import menu_repository
 from app.rag.embeddings import get_embedding
 from app.core.exceptions import MenuItemNotFoundException, EmbeddingServiceException, DatabaseException
@@ -78,6 +78,14 @@ class MenuService:
         return MenuItem(id=dish_id, **dish_data)
 
     async def update_menu_item(self, dish_id: str, dish_in: MenuItemUpdate) -> MenuItem:
+        update_data = dish_in.model_dump(exclude_unset=True, mode="json")
+        return await self._update_menu_item(dish_id, update_data)
+
+    async def replace_menu_item(self, dish_id: str, dish_in: MenuItemReplace) -> MenuItem:
+        replacement_data = dish_in.model_dump(mode="json")
+        return await self._update_menu_item(dish_id, replacement_data)
+
+    async def _update_menu_item(self, dish_id: str, update_data: dict) -> MenuItem:
         try:
             existing_doc = await menu_repository.get_menu_item(dish_id)
         except PyMongoError as e:
@@ -86,7 +94,6 @@ class MenuService:
         if not existing_doc:
             raise MenuItemNotFoundException(dish_id)
 
-        update_data = dish_in.model_dump(exclude_unset=True)
         if not update_data:
             return MenuItem(**existing_doc)
 

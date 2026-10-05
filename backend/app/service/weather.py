@@ -7,6 +7,7 @@ def get_restaurant_weather() -> str:
     try:
         url = (
             f"https://api.open-meteo.com/v1/forecast?"
+            f"forecast_days=14&"
             f"latitude={37.3828}&longitude={-5.9732}"
             f"&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&timezone=auto"
         )

@@ -7,6 +7,21 @@ class ReservationRepository:
     def collection(self):
         return db_instance.db['reservations']
 
+    async def ensure_indexes(self) -> None:
+        active_filter = {"status": "confirmed"}
+        indexes = await self.collection.index_information()
+        for field in ("email", "phone"):
+            index_name = f"reservation_{field}_per_day"
+            existing = indexes.get(index_name)
+            if existing and existing.get("partialFilterExpression") != active_filter:
+                await self.collection.drop_index(index_name)
+            await self.collection.create_index(
+                [(field, 1), ("date", 1)],
+                unique=True,
+                name=index_name,
+                partialFilterExpression=active_filter,
+            )
+
     async def create_reservation(self, reservation_data: dict) -> dict:
         await self.collection.insert_one(reservation_data)
         reservation_data.pop("_id", None)
@@ -26,8 +41,11 @@ class ReservationRepository:
         )
         return result.matched_count > 0
 
-    async def delete_reservation(self, reservation_id: str) -> bool:
-        result = await self.collection.delete_one({"reservation_id": reservation_id})
-        return result.deleted_count > 0
+    async def cancel_reservation(self, reservation_id: str) -> bool:
+        result = await self.collection.update_one(
+            {"reservation_id": reservation_id},
+            {"$set": {"status": "cancelled"}},
+        )
+        return result.matched_count > 0
 
 reservation_repository = ReservationRepository()

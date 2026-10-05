@@ -1,12 +1,11 @@
 # app/service/reservation.py
 import uuid
-from typing import List
 from datetime import datetime, timezone
-from pymongo.errors import PyMongoError
+from pymongo.errors import DuplicateKeyError, PyMongoError
 
-from app.models.reservation import ReservationCreate, ReservationUpdate, ReservationInDB
+from app.models.reservation import ReservationContact, ReservationCreate, ReservationReplace, ReservationUpdate, ReservationInDB, validate_reservation_schedule
 from app.repository.reservation import reservation_repository
-from app.core.exceptions import ReservationNotFoundException, DatabaseException
+from app.core.exceptions import DatabaseException, ReservationConflictException, ReservationNotFoundException, ReservationValidationException
 
 class ReservationService:
 
@@ -24,12 +23,24 @@ class ReservationService:
         )
         try:
             res_dict = reservation.model_dump()
+            res_dict["date"] = reservation.date.isoformat()
+            res_dict["time"] = reservation.time.isoformat(timespec="minutes")
             await reservation_repository.create_reservation(res_dict)
             return reservation
+        except DuplicateKeyError as e:
+            raise ReservationConflictException() from e
         except PyMongoError as e:
             raise DatabaseException(f"Error creating reservation: {str(e)}")
 
-    async def get_reservation(self, reservation_id: str) -> ReservationInDB:
+    async def get_reservation(self, reservation_id: str, contact: ReservationContact) -> ReservationInDB:
+        _, reservation = await self._get_authorized_reservation(reservation_id, contact)
+        return reservation
+
+    async def _get_authorized_reservation(
+        self,
+        reservation_id: str,
+        contact: ReservationContact,
+    ) -> tuple[dict, ReservationInDB]:
         try:
             doc = await reservation_repository.get_reservation(reservation_id)
         except PyMongoError as e:
@@ -38,39 +49,69 @@ class ReservationService:
         if not doc:
             raise ReservationNotFoundException(reservation_id)
 
-        return ReservationInDB(**doc)
-
-    async def list_reservations(self) -> List[ReservationInDB]:
-        try:
-            docs = await reservation_repository.list_reservations()
-            return [ReservationInDB(**doc) for doc in docs]
-        except PyMongoError as e:
-            raise DatabaseException(f"Error listing reservations: {str(e)}")
-
-    async def update_reservation(self, reservation_id: str, reservation_in: ReservationUpdate) -> ReservationInDB:
-        try:
-            existing_doc = await reservation_repository.get_reservation(reservation_id)
-        except PyMongoError as e:
-            raise DatabaseException(f"Error fetching reservation for update: {str(e)}")
-
-        if not existing_doc:
+        reservation = ReservationInDB(**doc)
+        if reservation.email != contact.email or reservation.phone != contact.phone:
             raise ReservationNotFoundException(reservation_id)
 
-        update_data = reservation_in.model_dump(exclude_unset=True)
-        if update_data:
-            try:
-                await reservation_repository.update_reservation(reservation_id, update_data)
-                existing_doc.update(update_data)
-            except PyMongoError as e:
-                raise DatabaseException(f"Error updating reservation: {str(e)}")
+        return doc, reservation
 
+    async def replace_reservation(
+        self,
+        reservation_id: str,
+        reservation_in: ReservationReplace,
+        contact: ReservationContact,
+    ) -> ReservationInDB:
+        return await self._update_reservation(reservation_id, reservation_in.model_dump(), contact)
+
+    async def update_reservation(
+        self,
+        reservation_id: str,
+        reservation_in: ReservationUpdate,
+        contact: ReservationContact,
+    ) -> ReservationInDB:
+        return await self._update_reservation(
+            reservation_id,
+            reservation_in.model_dump(exclude_unset=True),
+            contact,
+        )
+
+    async def _update_reservation(
+        self,
+        reservation_id: str,
+        update_data: dict,
+        contact: ReservationContact,
+    ) -> ReservationInDB:
+        existing_doc, existing = await self._get_authorized_reservation(reservation_id, contact)
+        reservation_date = update_data.get("date", existing.date)
+        reservation_time = update_data.get("time", existing.time)
+        try:
+            validate_reservation_schedule(reservation_date, reservation_time)
+        except ValueError as exc:
+            raise ReservationValidationException(str(exc)) from exc
+
+        if "date" in update_data:
+            update_data["date"] = update_data["date"].isoformat()
+        if "time" in update_data:
+            update_data["time"] = update_data["time"].isoformat(timespec="minutes")
+
+        try:
+            updated = await reservation_repository.update_reservation(reservation_id, update_data)
+        except DuplicateKeyError as e:
+            raise ReservationConflictException() from e
+        except PyMongoError as e:
+            raise DatabaseException(f"Error updating reservation: {str(e)}")
+
+        if not updated:
+            raise ReservationNotFoundException(reservation_id)
+        existing_doc.update(update_data)
         return ReservationInDB(**existing_doc)
 
-    async def delete_reservation(self, reservation_id: str) -> None:
+    async def cancel_reservation(self, reservation_id: str, contact: ReservationContact) -> None:
+        await self._get_authorized_reservation(reservation_id, contact)
         try:
-            success = await reservation_repository.delete_reservation(reservation_id)
+            success = await reservation_repository.cancel_reservation(reservation_id)
         except PyMongoError as e:
-            raise DatabaseException(f"Error deleting reservation: {str(e)}")
+            raise DatabaseException(f"Error canceling reservation: {str(e)}")
 
         if not success:
             raise ReservationNotFoundException(reservation_id)

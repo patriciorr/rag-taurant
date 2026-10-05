@@ -183,10 +183,36 @@ npm run dev
 
 ### REST API Endpoints
 
-| Method | Endpoint        | Description                                |
-| :----- | :-------------- | :----------------------------------------- |
-| `GET`  | `/api/v1/menu/` | Fetches the full list of restaurant dishes |
-| `POST` | `/api/v1/chat/` | Sends a message to the RAG Chatbot agent   |
+| Method | Endpoint                            | Description                                      |
+| :----- | :---------------------------------- | :----------------------------------------------- |
+| `GET`  | `/api/v1/menu/`                     | Fetches the restaurant menu                      |
+| `POST` | `/api/v1/menu/`                     | Creates a menu item                               |
+| `GET`  | `/api/v1/menu/{dish_id}`             | Fetches a menu item                               |
+| `PUT`  | `/api/v1/menu/{dish_id}`             | Replaces a menu item                              |
+| `PATCH`| `/api/v1/menu/{dish_id}`             | Partially updates a menu item                     |
+| `DELETE`| `/api/v1/menu/{dish_id}`            | Deletes a menu item                               |
+| `GET`  | `/api/v1/menu/search?query=...`       | Searches menu items                               |
+| `POST` | `/api/v1/reservations/`              | Creates a reservation                             |
+| `GET`  | `/api/v1/reservations/{id}`           | Reads a reservation with contact verification     |
+| `PUT`  | `/api/v1/reservations/{id}`           | Replaces reservation date, time, and party size   |
+| `PATCH`| `/api/v1/reservations/{id}`           | Partially updates date, time, or party size       |
+| `DELETE`| `/api/v1/reservations/{id}`          | Cancels a reservation                             |
+| `POST` | `/api/v1/chat/`                      | Sends a message to the RAG Chatbot agent          |
+
+Reservation detail, update, and cancellation requests require `X-Reservation-Email` and `X-Reservation-Phone` headers. The reservation collection intentionally has no public list endpoint.
+
+### Backend Tests
+
+Install the development test dependencies and start only the local MongoDB service:
+
+```bash
+pip install -r backend/requirements-dev.txt
+docker compose up -d mongodb
+cd backend
+python -m pytest -c pytest.ini
+```
+
+The integration tests use a unique `rag_taurant_test_*` database per test and drop it during cleanup. Embeddings are stubbed, so Ollama is not required. If overriding `TEST_MONGODB_URI`, use a disposable test MongoDB instance; the test databases are deleted automatically.
 
 ### Agent Autonomous Tools
 

@@ -13,3 +13,4 @@ requests>=2.31.0
 pymongo>=4.9.0
 langchain-mongodb>=0.2.0
 email-validator>=2.3.0
+phonenumbers>=9.0.0

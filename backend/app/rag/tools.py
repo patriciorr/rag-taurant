@@ -6,7 +6,8 @@ from langchain_core.tools import tool
 from pymongo import MongoClient
 from langchain_ollama import OllamaEmbeddings
 from app.core.config import settings
-from app.models.reservation import ReservationCreate, ReservationUpdate, ReservationInDB
+from app.models.reservation import ReservationContact, ReservationCreate, ReservationUpdate, ReservationInDB
+from app.service.reservation import reservation_service
 
 client = MongoClient(settings.MONGODB_URI)
 db = client[settings.DB_NAME]
@@ -164,14 +165,19 @@ def edit_table_reservation(
         return f"❌ Error de validación al editar la reserva: {str(e)}"
 
 @tool
-def delete_table_reservation(identifier: str) -> str:
-    """Elimina o cancela una reserva existente a partir de su ID de reserva, correo electrónico o teléfono."""
-    reservation = _find_reservation(identifier)
-    if not reservation:
-        return f"No se encontró ninguna reserva para cancelar con el identificador '{identifier}'."
-    
-    db["reservations"].delete_one({"reservation_id": reservation["reservation_id"]})
-    return f"🗑️ La reserva '{reservation['reservation_id']}' a nombre de {reservation['customer_name']} ha sido cancelada con éxito."
+async def delete_table_reservation(reservation_id: str, email: str, phone: str) -> str:
+    """Prepara la cancelación tras verificar el código, email y teléfono. No cancela hasta confirmación explícita."""
+    contact = ReservationContact(email=email, phone=phone)
+    reservation = await reservation_service.get_reservation(reservation_id, contact)
+    if reservation.status == "cancelled":
+        return f"La reserva '{reservation.reservation_id}' ya está cancelada."
+
+    return (
+        f"Reserva '{reservation.reservation_id}' a nombre de {reservation.customer_name}, "
+        f"para el {reservation.date.isoformat()} a las {reservation.time.isoformat(timespec='minutes')} "
+        f"({reservation.guests} comensales). No la canceles todavía; presenta este resumen y espera "
+        "una confirmación afirmativa explícita del cliente."
+    )
 
 # Exportar conjunto de herramientas para el agente
 bot_tools = [

@@ -23,3 +23,11 @@ class ReservationNotFoundException(Exception):
     def __init__(self, reservation_id: str):
         self.reservation_id = reservation_id
         super().__init__(f"Reservation with ID '{reservation_id}' not found.")
+
+class ReservationConflictException(Exception):
+    """Raised when a contact already has a reservation for the requested day."""
+    pass
+
+class ReservationValidationException(Exception):
+    """Raised when a partial update makes the complete reservation schedule invalid."""
+    pass

@@ -1,5 +1,5 @@
 # app/models/menu.py
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing import List, Optional
 from enum import Enum
 
@@ -25,12 +25,15 @@ class Allergen(str, Enum):
     ALTRAMUZ = "altramuces"
     MOLUSCOS = "moluscos"
 
-class MenuItemBase(BaseModel):
-    name: str = Field(..., example="Paella Marinera Tradicional")
-    description: str = Field(..., example="Arroz bomba cocinado a fuego lento con marisco fresco del día.")
-    price: float = Field(..., gt=0, example=18.50)
-    category: Category = Field(..., example=Category.PRINCIPAL)
-    allergens: List[Allergen] = Field(default_factory=list, example=[Allergen.MOLUSCOS, Allergen.PESCADO])
+class MenuModel(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+class MenuItemBase(MenuModel):
+    name: str = Field(..., min_length=1, max_length=120, json_schema_extra={"example": "Paella Marinera Tradicional"})
+    description: str = Field(..., min_length=1, max_length=2000, json_schema_extra={"example": "Arroz bomba cocinado a fuego lento con marisco fresco del día."})
+    price: float = Field(..., gt=0, json_schema_extra={"example": 18.50})
+    category: Category = Field(..., json_schema_extra={"example": Category.PRINCIPAL})
+    allergens: List[Allergen] = Field(default_factory=list, json_schema_extra={"example": [Allergen.MOLUSCOS, Allergen.PESCADO]})
     is_vegan: bool = Field(default=False)
     is_vegetarian: bool = Field(default=False)
     available: bool = Field(default=True)
@@ -38,15 +41,33 @@ class MenuItemBase(BaseModel):
 class MenuItemCreate(MenuItemBase):
     pass
 
-class MenuItemUpdate(BaseModel):
-    name: Optional[str] = Field(..., example="Paella de Carne")
-    description: Optional[str] = Field(..., example="Arroz bomba cocinado a fuego lento con pollo y verduras.")
-    price: Optional[float] = Field(None, gt=0, example=18.50)
-    category: Optional[Category] = Field(None, example=Category.PRINCIPAL)
-    allergens: Optional[List[Allergen]] = Field(None, example=[Allergen.SOJA, Allergen.SESAMO])
-    is_vegan: Optional[bool] = Field(..., example=False)
-    is_vegetarian: Optional[bool] = Field(..., example=False)
-    available: Optional[bool] = Field(..., example=True)
+class MenuItemReplace(MenuModel):
+    name: str = Field(..., min_length=1, max_length=120)
+    description: str = Field(..., min_length=1, max_length=2000)
+    price: float = Field(..., gt=0)
+    category: Category
+    allergens: List[Allergen]
+    is_vegan: bool
+    is_vegetarian: bool
+    available: bool
+
+class MenuItemUpdate(MenuModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=120)
+    description: Optional[str] = Field(None, min_length=1, max_length=2000)
+    price: Optional[float] = Field(None, gt=0)
+    category: Optional[Category] = None
+    allergens: Optional[List[Allergen]] = None
+    is_vegan: Optional[bool] = None
+    is_vegetarian: Optional[bool] = None
+    available: Optional[bool] = None
+
+    @model_validator(mode="after")
+    def validate_patch(self):
+        if not self.model_fields_set:
+            raise ValueError("At least one menu item field must be updated.")
+        if any(getattr(self, name) is None for name in self.model_fields_set):
+            raise ValueError("Menu item fields cannot be null.")
+        return self
 
 class MenuItem(MenuItemBase):
     id: str

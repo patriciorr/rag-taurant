@@ -19,7 +19,7 @@ class MenuRepository:
 
     async def update_menu_item(self, dish_id: str, updated_item: dict) -> bool:
         result = await self.collection.update_one({"id": dish_id}, {"$set": updated_item})
-        return result.modified_count > 0
+        return result.matched_count > 0
 
     async def delete_menu_item(self, dish_id: str) -> bool:
         result = await self.collection.delete_one({"id": dish_id})
