@@ -12,19 +12,18 @@ Unsplash photographs are provided under the [Unsplash License](https://unsplash.
 which permits free use without attribution. Source CDN image URLs are listed
 below so the original assets can be identified:
 
-| Local asset | Original Unsplash image |
-| --- | --- |
-| `hero.jpg` | [photo-1517248135467-4c7edcad34c4](https://images.unsplash.com/photo-1517248135467-4c7edcad34c4) |
-| `gazpacho.jpg` | [photo-1547592180-85f173990554](https://images.unsplash.com/photo-1547592180-85f173990554) |
-| `espinacas-garbanzos.jpg` | [photo-1498837167922-ddd27525d352](https://images.unsplash.com/photo-1498837167922-ddd27525d352) |
-| `croquetas.jpg` | [photo-1504754524776-8f4f37790ca0](https://images.unsplash.com/photo-1504754524776-8f4f37790ca0) |
-| `tortillitas.jpg` | [photo-1504674900247-0877df9cc836](https://images.unsplash.com/photo-1504674900247-0877df9cc836) |
-| `arroz-marinero.jpg` | [photo-1511690743698-d9d85f2fbf38](https://images.unsplash.com/photo-1511690743698-d9d85f2fbf38) |
-| `pisto.jpg` | [photo-1490645935967-10de6ba17061](https://images.unsplash.com/photo-1490645935967-10de6ba17061) |
-| `berenjenas.jpg` | [photo-1476224203421-9ac39bcb3327](https://images.unsplash.com/photo-1476224203421-9ac39bcb3327) |
-| `ensalada-naranja.jpg` | [photo-1512621776951-a57141f2eefd](https://images.unsplash.com/photo-1512621776951-a57141f2eefd) |
-| `garbanzos-altramuces.jpg` | [photo-1540189549336-e6e99c3679fe](https://images.unsplash.com/photo-1540189549336-e6e99c3679fe) |
-| `ensalada-templada.jpg` | [photo-1546069901-ba9599a7e63c](https://images.unsplash.com/photo-1546069901-ba9599a7e63c) |
-| `tarta-almendra.jpg` | [photo-1506084868230-bb9d95c24759](https://images.unsplash.com/photo-1506084868230-bb9d95c24759) |
-| `mousse-chocolate.jpg` | [photo-1525351484163-7529414344d8](https://images.unsplash.com/photo-1525351484163-7529414344d8) |
-
+| Local asset                | Original Unsplash image                                                                          |
+| -------------------------- | ------------------------------------------------------------------------------------------------ |
+| `hero.jpg`                 | [photo-1517248135467-4c7edcad34c4](https://images.unsplash.com/photo-1517248135467-4c7edcad34c4) |
+| `gazpacho.jpg`             | [photo-1662469838214-a97415cd83fe](https://images.unsplash.com/photo-1662469838214-a97415cd83fe) |
+| `espinacas-garbanzos.jpg`  | [photo-1654199903998-e49181b41a95](https://images.unsplash.com/photo-1654199903998-e49181b41a95) |
+| `croquetas.jpg`            | [photo-1713517915303-ae3b3429f939](https://images.unsplash.com/photo-1713517915303-ae3b3429f939) |
+| `tortillitas.jpg`          | [photo-1664774367243-18caa521fb96](https://images.unsplash.com/photo-1664774367243-18caa521fb96) |
+| `arroz-marinero.jpg`       | [photo-1623961990059-28356e226a77](https://images.unsplash.com/photo-1623961990059-28356e226a77) |
+| `pisto.jpg`                | [photo-1572453800999-e8d2d1589b7c](https://images.unsplash.com/photo-1572453800999-e8d2d1589b7c) |
+| `berenjenas.jpg`           | [photo-1677889173788-57b871df7b8a](https://images.unsplash.com/photo-1677889173788-57b871df7b8a) |
+| `ensalada-naranja.jpg`     | [photo-1691749123977-0701680083b8](https://images.unsplash.com/photo-1691749123977-0701680083b8) |
+| `garbanzos-altramuces.jpg` | [photo-1708782343809-0050c38b3a1a](https://images.unsplash.com/photo-1708782343809-0050c38b3a1a) |
+| `ensalada-templada.jpg`    | [photo-1608032077018-c9aad9565d29](https://images.unsplash.com/photo-1608032077018-c9aad9565d29) |
+| `tarta-almendra.jpg`       | [photo-1761637604691-801504fe1df2](https://images.unsplash.com/photo-1761637604691-801504fe1df2) |
+| `mousse-chocolate.jpg`     | [photo-1736840334919-aac2d5af73e4](https://images.unsplash.com/photo-1736840334919-aac2d5af73e4) |

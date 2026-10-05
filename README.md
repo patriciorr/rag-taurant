@@ -12,6 +12,7 @@
 [![MongoDB Atlas Local](https://img.shields.io/badge/MongoDB%20Atlas%20Local-Vector_Search-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/products/platform/atlas-vector-search)
 [![Ollama](https://img.shields.io/badge/Ollama-Qwen3_8B-black?logo=ollama&logoColor=white)](https://ollama.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![AWS](https://custom-icon-badges.demolab.com/badge/AWS-S3-%23FF999.svg?logo=aws&logoColor=white)](https://aws.amazon.com)
 [![License: All Rights Reserved](https://img.shields.io/badge/License-All%20Rights%20Reserved-lightgrey?logo=data:image/svg%2bxml;base64,PHN2ZyB3aWR0aD0iMTk3cHgiIGhlaWdodD0iMTk3cHgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmVyc2lvbj0iMS4xIj4KCTxjaXJjbGUgY3g9Ijk4IiBjeT0iOTgiIHI9Ijk4IiBmaWxsPSJibGFjayIvPgoJPGNpcmNsZSBjeD0iOTgiIGN5PSI5OCIgcj0iNzgiIGZpbGw9IndoaXRlIi8+Cgk8Y2lyY2xlIGN4PSI5OCIgY3k9Ijk4IiByPSI1NSIgZmlsbD0iYmxhY2siLz4KCTxjaXJjbGUgY3g9Ijk4IiBjeT0iOTgiIHI9IjMwIiBmaWxsPSJ3aGl0ZSIvPgoJPHJlY3QgeD0iMTE1IiB5PSI4NSIgd2lkdGg9IjQ1IiBoZWlnaHQ9IjI1IiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4=)](./LICENSE)
 
 [Key Features](#-key-features) • [Tech Stack](#-tech-stack) • [Project Structure](#-project-structure) • [Getting Started](#-getting-started) • [API & Tools](#-api--tools) • [License](#-license--usage-restrictions)
@@ -48,24 +49,24 @@ The application features a sleek **React + Material UI** frontend served through
 
 ### Frontend & Web Server
 
-| Technology            | Badge                                                                                               | Purpose                                   |
-| :-------------------- | :-------------------------------------------------------------------------------------------------- | :---------------------------------------- |
-| **React**             | ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB) | Single Page Application (SPA) client      |
-| **Vite**              | ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)     | Next-generation frontend tooling          |
-| **Material UI (MUI)** | ![MUI](https://img.shields.io/badge/MUI-007FFF?style=for-the-badge&logo=mui&logoColor=white)        | Elegant UI component system and styling   |
-| **Nginx**             | ![Nginx](https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white)  | Reverse proxy & static content web server |
-| **LocalStack 4.4.0** | S3-compatible local development storage | Local menu-image bucket, seeded at startup |
+| Technology                 | Badge                                                                                               | Purpose                                       |
+| :------------------------- | :-------------------------------------------------------------------------------------------------- | :-------------------------------------------- |
+| **React**                  | ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB) | Single Page Application (SPA) client          |
+| **Vite**                   | ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)     | Next-generation frontend tooling              |
+| **Material UI (MUI)**      | ![MUI](https://img.shields.io/badge/MUI-007FFF?style=for-the-badge&logo=mui&logoColor=white)        | Elegant UI component system and styling       |
+| **Nginx**                  | ![Nginx](https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white)  | Reverse proxy & static content web server     |
+| **AWS (LocalStack 4.4.0)** | ![AWS](https://img.shields.io/badge/AWS-005000?style=for-the-badge&logo=iCloud&logoColor=white)     | Local menu-image S3 bucket, seeded at startup |
 
 ### Backend, AI & Vector Database
 
-| Technology             | Badge                                                                                                          | Purpose                                          |
-| :--------------------- | :------------------------------------------------------------------------------------------------------------- | :----------------------------------------------- |
-| **Python**             | ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)          | Core backend language runtime                    |
-| **FastAPI**            | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)       | Asynchronous RESTful API framework               |
-| **LangChain**          | ![LangChain](https://img.shields.io/badge/LangChain-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white) | AI agent orchestration and tool execution        |
+| Technology              | Badge                                                                                                          | Purpose                                          |
+| :---------------------- | :------------------------------------------------------------------------------------------------------------- | :----------------------------------------------- |
+| **Python**              | ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)          | Core backend language runtime                    |
+| **FastAPI**             | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)       | Asynchronous RESTful API framework               |
+| **LangChain**           | ![LangChain](https://img.shields.io/badge/LangChain-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white) | AI agent orchestration and tool execution        |
 | **MongoDB Atlas Local** | ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)       | Local document and vector database               |
-| **Ollama (Qwen3 8B)**  | ![Ollama](https://img.shields.io/badge/Ollama-000000?style=for-the-badge&logo=ollama&logoColor=white)          | Local LLM inference engine with function calling |
-| **Docker**             | ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)          | Multi-container environment orchestration        |
+| **Ollama (Qwen3 8B)**   | ![Ollama](https://img.shields.io/badge/Ollama-000000?style=for-the-badge&logo=ollama&logoColor=white)          | Local LLM inference engine with function calling |
+| **Docker**              | ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)          | Multi-container environment orchestration        |
 
 ---
 
@@ -271,21 +272,21 @@ MongoDB instance.
 
 ### REST API Endpoints
 
-| Method | Endpoint                            | Description                                      |
-| :----- | :---------------------------------- | :----------------------------------------------- |
-| `GET`  | `/api/v1/menu/`                     | Fetches the restaurant menu                      |
-| `POST` | `/api/v1/menu/`                     | Creates a menu item                               |
-| `GET`  | `/api/v1/menu/{dish_id}`             | Fetches a menu item                               |
-| `PUT`  | `/api/v1/menu/{dish_id}`             | Replaces a menu item                              |
-| `PATCH`| `/api/v1/menu/{dish_id}`             | Partially updates a menu item                     |
-| `DELETE`| `/api/v1/menu/{dish_id}`            | Deletes a menu item                               |
-| `GET`  | `/api/v1/menu/search?query=...`       | Searches menu items                               |
-| `POST` | `/api/v1/reservations/`              | Creates a reservation                             |
-| `GET`  | `/api/v1/reservations/{id}`           | Reads a reservation with contact verification     |
-| `PUT`  | `/api/v1/reservations/{id}`           | Replaces reservation date, time, and party size   |
-| `PATCH`| `/api/v1/reservations/{id}`           | Partially updates date, time, or party size       |
-| `DELETE`| `/api/v1/reservations/{id}`          | Cancels a reservation                             |
-| `POST` | `/api/v1/chat/`                      | Sends a message to the RAG Chatbot agent          |
+| Method   | Endpoint                        | Description                                     |
+| :------- | :------------------------------ | :---------------------------------------------- |
+| `GET`    | `/api/v1/menu/`                 | Fetches the restaurant menu                     |
+| `POST`   | `/api/v1/menu/`                 | Creates a menu item                             |
+| `GET`    | `/api/v1/menu/{dish_id}`        | Fetches a menu item                             |
+| `PUT`    | `/api/v1/menu/{dish_id}`        | Replaces a menu item                            |
+| `PATCH`  | `/api/v1/menu/{dish_id}`        | Partially updates a menu item                   |
+| `DELETE` | `/api/v1/menu/{dish_id}`        | Deletes a menu item                             |
+| `GET`    | `/api/v1/menu/search?query=...` | Searches menu items                             |
+| `POST`   | `/api/v1/reservations/`         | Creates a reservation                           |
+| `GET`    | `/api/v1/reservations/{id}`     | Reads a reservation with contact verification   |
+| `PUT`    | `/api/v1/reservations/{id}`     | Replaces reservation date, time, and party size |
+| `PATCH`  | `/api/v1/reservations/{id}`     | Partially updates date, time, or party size     |
+| `DELETE` | `/api/v1/reservations/{id}`     | Cancels a reservation                           |
+| `POST`   | `/api/v1/chat/`                 | Sends a message to the RAG Chatbot agent        |
 
 Reservation detail, update, and cancellation requests require `X-Reservation-Email` and `X-Reservation-Phone` headers. The reservation collection intentionally has no public list endpoint.
 
