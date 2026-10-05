@@ -23,11 +23,12 @@ LOCAL_OLLAMA_OPENER = build_opener(ProxyHandler({}))
 
 from app.evaluation.local_model_benchmark import (
     DATASET_PATH,
+    RetrievalScore,
     load_evaluation_cases,
     score_grounding,
     score_retrieval,
     score_tool_call,
-    serialize_score,
+    summarize_retrieval,
 )
 
 
@@ -520,11 +521,15 @@ def evaluate_embeddings(
                 and ranked[0][1] >= no_evidence_threshold,
             }
         )
-    answerable_scores = [
-        item["recall_at_3"]
-        for item in retrieval_results
-        if item["recall_at_3"] is not None
-    ]
+    summary = summarize_retrieval(
+        [
+            RetrievalScore(
+                recall_at_k=item["recall_at_3"],
+                reciprocal_rank=item["reciprocal_rank"],
+            )
+            for item in retrieval_results
+        ]
+    )
     return {
         "model": model,
         "hardware": hardware,
@@ -532,12 +537,10 @@ def evaluate_embeddings(
         "input_count": len(inputs),
         "elapsed_seconds": round(elapsed_seconds, 3),
         "milliseconds_per_input": round(elapsed_seconds * 1000 / len(inputs), 2),
-        "recall_at_3": round(sum(answerable_scores) / len(answerable_scores), 4),
-        "mrr": round(
-            sum(item["reciprocal_rank"] for item in retrieval_results)
-            / len(answerable_scores),
-            4,
-        ),
+        "recall_at_3": round(summary.recall_at_k, 4),
+        "mrr": round(summary.mean_reciprocal_rank, 4),
+        "answerable_queries": summary.answerable_queries,
+        "unanswerable_queries": summary.unanswerable_queries,
         "unanswerable_false_positive": any(
             item["false_positive"]
             for item in retrieval_results

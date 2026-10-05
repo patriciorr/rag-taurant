@@ -33,31 +33,32 @@ La matriz completa se ejecutó con el runner versionado [`backend/scripts/evalua
 
 | Modelo | Hardware | Tool accuracy | Argument accuracy | Grounded response rate | Latencia media | Pico contenedor | Working set | Pico VRAM |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| Qwen3 8B | CPU | 0.8889 | **0.7778** | **0.6667** | 18.938 s | 12,655 MiB | 6,999 MiB | — |
-| Llama 3.2 3B | CPU | 0.8889 | 0.4444 | 0.5556 | **10.525 s** | 11,417 MiB | **3,990 MiB** | — |
-| Qwen3 8B | GPU | 0.8889 | **0.7778** | **0.5556** | 4.184 s | 11,170 MiB | 6,791 MiB | **7,041 MiB** |
-| Llama 3.2 3B | GPU | 0.8889 | 0.5556 | 0.4444 | **1.961 s** | **10,745 MiB** | 8,355 MiB | 4,117 MiB |
+| Qwen3 8B | CPU | **0.9286** | **0.8571** | **0.5000** | 20.967 s | 14,981 MiB | 13,458 MiB | — |
+| Llama 3.2 3B | CPU | **0.9286** | 0.5714 | 0.4286 | **12.474 s** | 12,661 MiB | 11,236 MiB | — |
+| Qwen3 8B | GPU | **0.9286** | **0.8571** | **0.5000** | 3.711 s | **10,164 MiB** | **9,852 MiB** | **7,317 MiB** |
+| Llama 3.2 3B | GPU | **0.9286** | 0.6429 | 0.3571 | **1.996 s** | 10,309 MiB | 10,292 MiB | 4,425 MiB |
 
 Observaciones relevantes:
 
-- Ambos modelos fallaron el caso sin evidencia sobre perros en la terraza: no rechazaron con la respuesta correcta basada en falta de evidencia.
+- Ambos modelos fallaron el caso sin evidencia sobre perros en la terraza. Qwen omitió previsión para una fecha pasada y una fuera de horizonte; Llama hizo llamadas de herramienta innecesarias en varios casos.
 - Qwen3 fue más consistente al rellenar argumentos correctos y al resumir correctamente los resultados simulados de reservas y meteorología.
 - Llama 3.2 fue bastante más rápido, especialmente en GPU, pero cometió más errores de formato/argumentos y varias respuestas quedaron peor fundamentadas.
+- Estas tasas no certifican que el modelo pueda ser la barrera de seguridad o la fuente de verdad. Aunque se selecciona Qwen3 como valor predeterminado para el agente local, el resultado «no se admiten perros» demuestra que la búsqueda institucional requiere control determinista de evidencia y que el modelo nunca debe responder por su cuenta cuando una herramienta no aporta datos. No considerar el chatbot listo para producción hasta que esa política esté impuesta fuera del modelo.
 
 #### Recuperación
 
-| Embedding | Hardware | Dimensiones | Recall@3 | MRR | Falso positivo sin evidencia | Latencia por input |
+| Embedding | Hardware | Dimensiones | Recall@3 | MRR@3 | Falso positivo sin evidencia | Latencia por input |
 |---|---:|---:|---:|---:|---:|---:|
-| BGE-M3 | CPU | **1024** | **0.8333** | **0.8667** | **No** | 276.66 ms |
-| Nomic Embed Text | CPU | 768 | 0.7500 | 0.7639 | Sí | **79.97 ms** |
-| BGE-M3 | GPU | **1024** | **0.8333** | **0.8667** | **No** | **263.30 ms** |
-| Nomic Embed Text | GPU | 768 | 0.7500 | 0.7639 | Sí | 507.96 ms |
+| BGE-M3 | CPU | **1024** | **0.8333** | **0.8333** | **No** | 592.98 ms |
+| Nomic Embed Text | CPU | 768 | 0.7500 | 0.7222 | Sí | **220.23 ms** |
+| BGE-M3 | GPU | **1024** | **0.8333** | **0.8333** | **No** | **225.84 ms** |
+| Nomic Embed Text | GPU | 768 | 0.7500 | 0.7222 | Sí | 126.90 ms |
 
 Observaciones relevantes:
 
 - **BGE-M3** supera al embedding actual en recuperación y evita el falso positivo del caso sin respuesta (`¿Se admiten perros en la terraza?`).
 - Ambos embeddings suspendieron el caso de sinónimo `sopa fría de hortalizas`; esto indica que conviene ampliar los textos indexados o añadir más ejemplos/sinónimos al corpus.
-- En CPU, Nomic es claramente más rápido, pero sacrifica recuperación y genera un falso positivo sin evidencia. En GPU, además, BGE-M3 resulta incluso más rápido que Nomic en esta máquina.
+- Nomic es más rápido en ambas modalidades, pero sacrifica recuperación y genera un falso positivo sin evidencia.
 
 ### Selección final
 
@@ -69,7 +70,7 @@ La configuración local recomendada para RAGtaurant queda en:
 
 Motivos:
 
-1. Qwen3 8B fue el mejor equilibrio medido entre precisión de herramientas, validez de argumentos y fundamentación, tanto en CPU como en GPU.
+1. Qwen3 8B fue el mejor equilibrio medido entre precisión de argumentos y fundamentación; ambos modelos empataron en selección de herramienta.
 2. Llama 3.2 3B es un fallback razonable cuando la prioridad absoluta es la latencia, pero no para la configuración por defecto porque pierde demasiada fiabilidad en argumentos y grounding.
 3. BGE-M3 superó de forma consistente al embedding previo y eliminó el falso positivo del caso sin evidencia, por lo que justifica regenerar todos los vectores.
 

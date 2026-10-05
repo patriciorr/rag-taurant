@@ -34,6 +34,14 @@ class RetrievalScore:
     reciprocal_rank: float
 
 
+@dataclass(frozen=True)
+class RetrievalSummary:
+    recall_at_k: float
+    mean_reciprocal_rank: float
+    answerable_queries: int
+    unanswerable_queries: int
+
+
 def _normalized(text: str) -> str:
     decomposed = unicodedata.normalize("NFKD", text.casefold())
     return "".join(char for char in decomposed if not unicodedata.combining(char))
@@ -121,7 +129,7 @@ def score_retrieval(
     reciprocal_rank = next(
         (
             1.0 / rank
-            for rank, document_id in enumerate(ranked_ids, start=1)
+            for rank, document_id in enumerate(top_k, start=1)
             if document_id in relevant
         ),
         0.0,
@@ -129,6 +137,22 @@ def score_retrieval(
     return RetrievalScore(
         recall_at_k=recall_at_k,
         reciprocal_rank=reciprocal_rank,
+    )
+
+
+def summarize_retrieval(scores: Sequence[RetrievalScore]) -> RetrievalSummary:
+    answerable = [score for score in scores if score.recall_at_k is not None]
+    unanswerable_count = len(scores) - len(answerable)
+    if not answerable:
+        raise ValueError("Retrieval summary requires at least one answerable query.")
+    return RetrievalSummary(
+        recall_at_k=sum(score.recall_at_k for score in answerable) / len(answerable),
+        mean_reciprocal_rank=sum(
+            score.reciprocal_rank for score in answerable
+        )
+        / len(answerable),
+        answerable_queries=len(answerable),
+        unanswerable_queries=unanswerable_count,
     )
 
 

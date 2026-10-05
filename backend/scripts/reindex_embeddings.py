@@ -104,17 +104,17 @@ def _embedding_text(collection_name: str, document: Mapping[str, Any]) -> str:
     return content
 
 
-async def _reindex_collection(
+async def _prepare_collection_embeddings(
     database: Any,
     collection_name: str,
     embedding_model: OllamaEmbeddings,
     dimensions: int,
-) -> int:
+) -> tuple[list[dict[str, Any]], list[list[float]]]:
     collection = database[collection_name]
     documents = await collection.find({}).to_list(length=None)
     if not documents:
         logger.info("Collection %s is empty; no vectors to regenerate.", collection_name)
-        return 0
+        return documents, []
 
     texts = [_embedding_text(collection_name, document) for document in documents]
     vectors = await embedding_model.aembed_documents(texts)
@@ -132,6 +132,50 @@ async def _reindex_collection(
             f"{invalid_dimensions}; configured index dimension is {dimensions}."
         )
 
+    return documents, vectors
+
+
+async def _migrate_collections(
+    database: Any,
+    collection_names: list[str],
+    embedding_model: OllamaEmbeddings,
+    dimensions: int,
+) -> dict[str, int]:
+    prepared_embeddings = {}
+    for collection_name in collection_names:
+        prepared_embeddings[collection_name] = await _prepare_collection_embeddings(
+            database,
+            collection_name,
+            embedding_model,
+            dimensions,
+        )
+
+    for collection_name in collection_names:
+        await _ensure_vector_index(database, collection_name, dimensions)
+
+    counts = {}
+    for collection_name in collection_names:
+        documents, vectors = prepared_embeddings[collection_name]
+        counts[collection_name] = await _store_collection_embeddings(
+            database,
+            collection_name,
+            documents,
+            vectors,
+            dimensions,
+        )
+    return counts
+
+
+async def _store_collection_embeddings(
+    database: Any,
+    collection_name: str,
+    documents: list[dict[str, Any]],
+    vectors: list[list[float]],
+    dimensions: int,
+) -> int:
+    if not documents:
+        return 0
+    collection = database[collection_name]
     operations = [
         UpdateOne(
             {"_id": document["_id"]},
@@ -172,20 +216,12 @@ async def reindex_database() -> dict[str, int]:
             model=settings.EMBEDDING_MODEL,
             base_url=settings.OLLAMA_BASE_URL,
         )
-        counts = {}
-        for collection_name in target_collections:
-            await _ensure_vector_index(
-                database,
-                collection_name,
-                settings.EMBEDDING_DIMENSIONS,
-            )
-            counts[collection_name] = await _reindex_collection(
-                database,
-                collection_name,
-                embedding_model,
-                settings.EMBEDDING_DIMENSIONS,
-            )
-        return counts
+        return await _migrate_collections(
+            database,
+            target_collections,
+            embedding_model,
+            settings.EMBEDDING_DIMENSIONS,
+        )
     finally:
         await client.close()
 

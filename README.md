@@ -151,7 +151,7 @@ docker compose up -d ollama mongodb
 docker compose run --build --rm --no-deps backend python scripts/reindex_embeddings.py
 ```
 
-This regenerates every menu vector and every existing restaurant-knowledge vector, and updates their vector-search index to the selected model's dimension.
+The script generates and validates every replacement vector before changing indexes or stored embeddings. It regenerates every menu vector and every existing restaurant-knowledge vector, then updates each vector-search index to the selected model's dimension.
 
 ---
 

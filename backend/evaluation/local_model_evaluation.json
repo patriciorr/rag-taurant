@@ -106,6 +106,66 @@
       "simulated_result": "Previsión simulada para 2026-10-18: temperatura máxima 23 °C, mínima 15 °C y probabilidad de precipitación 10 %."
     },
     {
+      "id": "weather-today",
+      "prompt": "¿Qué tiempo hará hoy, 5 de octubre de 2026, en el restaurante?",
+      "expected_tool": "get_weather_forecast",
+      "expected_arguments": {
+        "date": "2026-10-05"
+      },
+      "allowed_arguments": ["date"],
+      "expected_response_terms": ["18", "12"],
+      "forbidden_response_terms": [],
+      "simulated_result": "Previsión simulada para 2026-10-05: máxima 18 °C, mínima 12 °C y probabilidad de precipitación 20 %."
+    },
+    {
+      "id": "weather-final-horizon-day",
+      "prompt": "¿Qué tiempo hará el último día del horizonte de 14 días, 18 de octubre de 2026?",
+      "expected_tool": "get_weather_forecast",
+      "expected_arguments": {
+        "date": "2026-10-18"
+      },
+      "allowed_arguments": ["date"],
+      "expected_response_terms": ["23", "15"],
+      "forbidden_response_terms": [],
+      "simulated_result": "Previsión simulada para 2026-10-18: máxima 23 °C, mínima 15 °C y probabilidad de precipitación 10 %."
+    },
+    {
+      "id": "weather-past-date",
+      "prompt": "¿Qué tiempo hará el 4 de octubre de 2026 en el restaurante?",
+      "expected_tool": "get_weather_forecast",
+      "expected_arguments": {
+        "date": "2026-10-04"
+      },
+      "allowed_arguments": ["date"],
+      "expected_response_terms": ["no hay previsión"],
+      "forbidden_response_terms": ["temperatura máxima"],
+      "simulated_result": "No hay previsión disponible para 2026-10-04. El horizonte disponible es del 2026-10-05 al 2026-10-18."
+    },
+    {
+      "id": "weather-outside-horizon",
+      "prompt": "¿Qué tiempo hará el 19 de octubre de 2026 en el restaurante?",
+      "expected_tool": "get_weather_forecast",
+      "expected_arguments": {
+        "date": "2026-10-19"
+      },
+      "allowed_arguments": ["date"],
+      "expected_response_terms": ["no hay previsión"],
+      "forbidden_response_terms": ["temperatura máxima"],
+      "simulated_result": "No hay previsión disponible para 2026-10-19. El horizonte disponible es del 2026-10-05 al 2026-10-18."
+    },
+    {
+      "id": "weather-provider-failure",
+      "prompt": "¿Qué previsión hay para el 10 de octubre de 2026 en el restaurante?",
+      "expected_tool": "get_weather_forecast",
+      "expected_arguments": {
+        "date": "2026-10-10"
+      },
+      "allowed_arguments": ["date"],
+      "expected_response_terms": ["no pude consultar", "intentalo de nuevo"],
+      "forbidden_response_terms": ["temperatura máxima"],
+      "simulated_result": "No pude consultar la previsión meteorológica ahora. Inténtalo de nuevo más tarde."
+    },
+    {
       "id": "restaurant-no-evidence",
       "prompt": "¿Se admiten perros en la terraza?",
       "expected_tool": "search_info",
