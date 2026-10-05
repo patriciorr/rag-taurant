@@ -3,6 +3,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from app.core.exceptions import DatabaseException
 from app.models.reservation import ReservationInDB
 from app.rag import agent as agent_module
 from app.rag import tools as tools_module
@@ -103,6 +104,57 @@ async def test_chatbot_cancels_only_after_explicit_confirmation(monkeypatch):
 
     assert "cancelada" in completed["output"].lower()
     assert cancellations == [("RES-1", "ana@example.com", "+34612345678")]
+
+
+@pytest.mark.asyncio
+async def test_chatbot_keeps_cancellation_pending_after_a_database_failure(monkeypatch):
+    class FakeModel:
+        async def ainvoke(self, messages):
+            return SimpleNamespace(
+                tool_calls=[
+                    {
+                        "name": "delete_table_reservation",
+                        "args": {
+                            "reservation_id": "RES-1",
+                            "email": "ana@example.com",
+                            "phone": "+34612345678",
+                        },
+                        "id": "cancel-retry",
+                    }
+                ],
+                content="",
+            )
+
+    class CancellationTool:
+        async def ainvoke(self, arguments):
+            return "¿Confirma la cancelación de RES-1?"
+
+    attempts = 0
+
+    async def cancel_reservation(reservation_id, contact):
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            raise DatabaseException("database unavailable")
+
+    monkeypatch.setattr(agent_module, "llm_with_tools", FakeModel())
+    monkeypatch.setitem(agent_module.TOOLS_MAP, "delete_table_reservation", CancellationTool())
+    monkeypatch.setattr(agent_module.reservation_service, "cancel_reservation", cancel_reservation)
+    runner = agent_module.RAGChatbotRunner()
+    config = {"configurable": {"session_id": "retry-cancellation"}}
+
+    await runner.ainvoke({"input": "Quiero cancelar RES-1"}, config)
+    failed = await runner.ainvoke({"input": "Sí, confirmar"}, config)
+
+    assert "no se pudo completar la cancelación" in failed["output"].lower()
+    assert "retry-cancellation" in runner.pending_cancellations
+    assert attempts == 1
+
+    retried = await runner.ainvoke({"input": "Sí, confirmar"}, config)
+
+    assert "cancelada" in retried["output"].lower()
+    assert "retry-cancellation" not in runner.pending_cancellations
+    assert attempts == 2
 
 
 @pytest.mark.asyncio

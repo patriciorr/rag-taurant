@@ -103,12 +103,29 @@ class RAGChatbotRunner:
             answer = self._confirmation_answer(user_text)
             if answer == "yes":
                 contact = ReservationContact(email=pending["email"], phone=pending["phone"])
-                await reservation_service.cancel_reservation(pending["reservation_id"], contact)
-                self.pending_cancellations.pop(session_id)
-                verified = self.verified_reservations.get(session_id)
-                if verified is not None and verified[0] == pending["reservation_id"]:
-                    self.verified_reservations.pop(session_id)
-                output = f"La reserva '{pending['reservation_id']}' ha sido cancelada."
+                try:
+                    await reservation_service.cancel_reservation(pending["reservation_id"], contact)
+                except ReservationNotFoundException:
+                    self.pending_cancellations.pop(session_id)
+                    output = self._reservation_not_found_message()
+                except DatabaseException:
+                    logger.exception("Failed to cancel a confirmed reservation")
+                    output = (
+                        "No se pudo completar la cancelación. Responde «sí» para volver "
+                        "a intentarlo o «no» para descartar la solicitud."
+                    )
+                except Exception:
+                    logger.exception("Unexpected failure canceling a confirmed reservation")
+                    output = (
+                        "No se pudo completar la cancelación. Responde «sí» para volver "
+                        "a intentarlo o «no» para descartar la solicitud."
+                    )
+                else:
+                    self.pending_cancellations.pop(session_id)
+                    verified = self.verified_reservations.get(session_id)
+                    if verified is not None and verified[0] == pending["reservation_id"]:
+                        self.verified_reservations.pop(session_id)
+                    output = f"La reserva '{pending['reservation_id']}' ha sido cancelada."
             elif answer == "no":
                 self.pending_cancellations.pop(session_id)
                 output = "De acuerdo, no se ha cancelado la reserva."
