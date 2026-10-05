@@ -364,6 +364,8 @@ class RAGChatbotRunner:
         session_id: str,
     ) -> str:
         arguments = dict(tool_args)
+        if tool_name == "search_menu":
+            arguments = self._normalize_search_menu_arguments(arguments)
         if tool_name == "get_table_reservation":
             self.verified_reservations.pop(session_id, None)
             reservation = await get_verified_table_reservation(**arguments)
@@ -384,6 +386,25 @@ class RAGChatbotRunner:
         if selected_tool is None:
             raise ValueError(f"Tool '{tool_name}' is not available.")
         return await selected_tool.ainvoke(arguments)
+
+    @staticmethod
+    def _normalize_search_menu_arguments(arguments: dict) -> dict:
+        """Coerce loosely typed model output into the shape `search_menu` validates."""
+        normalized = {key: value for key, value in arguments.items() if value is not None}
+        allergens = normalized.get("exclude_allergens")
+        if isinstance(allergens, str):
+            allergens = [part.strip() for part in allergens.split(",")]
+        if isinstance(allergens, list):
+            normalized["exclude_allergens"] = [
+                str(item).strip().casefold() for item in allergens if str(item).strip()
+            ]
+        for flag in ("vegan_only", "vegetarian_only", "available_only"):
+            value = normalized.get(flag)
+            if isinstance(value, str):
+                normalized[flag] = value.strip().casefold() in {"true", "1", "yes", "sí", "si"}
+        if not isinstance(normalized.get("query"), str):
+            normalized["query"] = str(normalized.get("query") or "")
+        return normalized
 
     @staticmethod
     def _confirmation_answer(message: str) -> str | None:

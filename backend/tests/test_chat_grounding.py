@@ -157,3 +157,33 @@ async def test_chat_prompt_limits_scope_and_refuses_unrelated_requests(monkeypat
     )
 
     assert result["output"] == refusal
+
+
+@pytest.mark.asyncio
+async def test_search_menu_arguments_from_model_are_normalized(monkeypatch):
+    received = {}
+
+    class MenuTool:
+        async def ainvoke(self, arguments):
+            received.update(arguments)
+            return "ok"
+
+    monkeypatch.setattr(agent_module, "TOOLS_MAP", {"search_menu": MenuTool()})
+    runner = agent_module.RAGChatbotRunner()
+
+    await runner._invoke_tool(
+        "search_menu",
+        {
+            "query": "gluten",
+            "vegan_only": None,
+            "exclude_allergens": "Gluten, lácteos",
+            "available_only": "true",
+        },
+        "s1",
+    )
+
+    assert received == {
+        "query": "gluten",
+        "exclude_allergens": ["gluten", "lácteos"],
+        "available_only": True,
+    }
