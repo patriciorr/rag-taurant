@@ -2,9 +2,8 @@
 from typing import Optional
 import re
 from langchain_core.tools import tool
-from pymongo import MongoClient
-from app.core.config import settings
-from app.rag.embeddings import get_embedding_sync
+from app.core.database import db_instance
+from app.rag.embeddings import get_embedding
 from app.models.menu import Allergen
 from app.models.reservation import (
     ReservationContact,
@@ -17,10 +16,6 @@ from app.service.reservation import reservation_service
 from app.service.weather import get_restaurant_weather
 from app.core.exceptions import ReservationValidationException
 
-client = MongoClient(settings.MONGODB_URI)
-db = client[settings.DB_NAME]
-
-# --- BÚSQUEDA RAG: MENÚ ---
 @tool
 async def search_menu(
     query: str,
@@ -87,11 +82,10 @@ async def search_menu(
     )
     return "\n".join(response)
 
-# --- BÚSQUEDA RAG: INFORMACIÓN GENERAL (llm.txt) ---
 @tool
-def search_info(query: str) -> str:
-    """Busca información institucional del restaurante: ubicación, horarios, políticas de terraza, aparcamiento o normas."""
-    query_vector = get_embedding_sync(query)
+async def search_info(query: str) -> str:
+    """Busca información institucional del restaurante y sobre San Juan del Puerto."""
+    query_vector = await get_embedding(query)
     
     pipeline = [
         {
@@ -106,7 +100,8 @@ def search_info(query: str) -> str:
         {"$project": {"_id": 0, "embedding": 0, "embedding_model": 0, "embedding_dimensions": 0}}
     ]
     
-    results = list(db["knowledge"].aggregate(pipeline))
+    cursor = await db_instance.db["knowledge"].aggregate(pipeline)
+    results = await cursor.to_list(length=None)
     if not results:
         return "No se encontró información institucional sobre esa consulta."
     
@@ -114,8 +109,6 @@ def search_info(query: str) -> str:
     for info in results:
         response += f"- {info.get('content')}\n"
     return response
-
-# --- CRUD RESERVAS ---
 
 def _escape_markdown(value: str) -> str:
     escaped = re.sub(r"([\\`*_\[\]<>])", r"\\\1", value)

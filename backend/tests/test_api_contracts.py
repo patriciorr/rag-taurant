@@ -6,14 +6,54 @@ from fastapi.testclient import TestClient
 
 from app.api import chat as chat_api
 from app.api import menu as menu_api
+from app.core.config import settings
 from app.models import reservation as reservation_models
 from app.service import reservation as reservation_service
 from main import app
 
 
 @pytest.fixture
-def client():
-    return TestClient(app, raise_server_exceptions=False)
+def client(monkeypatch):
+    monkeypatch.setattr(settings, "MENU_ADMIN_TOKEN", "test-menu-token")
+    return TestClient(
+        app, raise_server_exceptions=False,
+        headers={"Authorization": "Bearer test-menu-token"},
+    )
+
+
+@pytest.mark.parametrize(
+    ("method", "path", "payload"),
+    [
+        ("POST", "/api/v1/menu/", {}),
+        ("PUT", "/api/v1/menu/dish-1", {}),
+        ("PATCH", "/api/v1/menu/dish-1", {}),
+        ("DELETE", "/api/v1/menu/dish-1", None),
+    ],
+)
+def test_menu_mutations_reject_missing_and_invalid_credentials(client, method, path, payload):
+    for authorization in ("", "Bearer invalid", "Basic dGVzdA=="):
+        response = client.request(method, path, headers={"Authorization": authorization}, json=payload)
+        assert response.status_code == 401
+        assert response.json()["code"] == "UNAUTHORIZED"
+        assert response.headers["www-authenticate"] == "Bearer"
+
+
+def test_menu_mutations_fail_closed_when_not_configured(client, monkeypatch):
+    monkeypatch.setattr(settings, "MENU_ADMIN_TOKEN", "")
+    response = client.delete("/api/v1/menu/dish-1")
+    assert response.status_code == 503
+    assert response.json()["code"] == "SERVICE_UNAVAILABLE"
+
+
+def test_menu_read_remains_public(client, monkeypatch):
+    async def list_menu():
+        return []
+
+    monkeypatch.setattr(menu_api.menu_service, "list_menu", list_menu)
+    monkeypatch.setattr(settings, "MENU_ADMIN_TOKEN", "")
+    response = client.get("/api/v1/menu/", headers={"Authorization": ""})
+    assert response.status_code == 200
+    assert response.json() == []
 
 
 def menu_item_response():

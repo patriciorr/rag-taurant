@@ -3,7 +3,10 @@ import { describe, expect, it, vi } from "vitest";
 import App from "./App";
 
 vi.mock("./components/ChatWidget", () => ({ default: () => null }));
-vi.mock("./services/api", () => ({ getMenu: vi.fn(() => Promise.resolve([])) }));
+vi.mock("./services/api", () => ({
+  getMenu: vi.fn(() => Promise.resolve([])),
+  getRestaurantInformation: vi.fn(() => Promise.resolve([])),
+}));
 
 describe("App navigation", () => {
   it("keeps one reservation link in the navbar with the booking arrow", () => {

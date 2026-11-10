@@ -1,5 +1,6 @@
 from app.core.config import settings
 from app.core.database import db_instance
+from app.core.restaurant_info import RESTAURANT_INFORMATION
 from app.evaluation.embedding_migration import (
     VECTOR_INDEX_NAME,
     get_vector_index_dimensions,
@@ -153,6 +154,90 @@ INITIAL_MENU = [
         "available": True,
         "image_url": "/assets/menu/mousse-chocolate.jpg",
     },
+    {
+        "id": "13",
+        "name": "Agua mineral",
+        "description": "Agua mineral natural, botella de 500 ml.",
+        "price": 2.0,
+        "category": "bebida",
+        "allergens": [],
+        "is_vegan": True,
+        "is_vegetarian": True,
+        "available": True,
+        "image_url": "/assets/menu/agua-mineral.jpg",
+    },
+    {
+        "id": "14",
+        "name": "Refresco de cola",
+        "description": "Refresco de cola, botella de 330 ml, servido frío.",
+        "price": 2.8,
+        "category": "bebida",
+        "allergens": [],
+        "is_vegan": True,
+        "is_vegetarian": True,
+        "available": True,
+        "image_url": "/assets/menu/refresco-cola.jpg",
+    },
+    {
+        "id": "15",
+        "name": "Refresco de limón",
+        "description": "Refresco de limón, botella de 330 ml, servido frío.",
+        "price": 2.8,
+        "category": "bebida",
+        "allergens": [],
+        "is_vegan": True,
+        "is_vegetarian": True,
+        "available": True,
+        "image_url": "/assets/menu/refresco-limon.jpg",
+    },
+    {
+        "id": "16",
+        "name": "Vino blanco",
+        "description": "Copa de vino blanco fresco, sugerida para acompañar pescados y platos marineros.",
+        "price": 4.5,
+        "category": "bebida",
+        "allergens": ["sulfitos"],
+        "is_vegan": False,
+        "is_vegetarian": False,
+        "available": True,
+        "image_url": "/assets/menu/vino-blanco.jpg",
+    },
+    {
+        "id": "17",
+        "name": "Vino tinto",
+        "description": "Copa de vino tinto, sugerida para acompañar carnes y platos de sabor intenso.",
+        "price": 4.5,
+        "category": "bebida",
+        "allergens": ["sulfitos"],
+        "is_vegan": False,
+        "is_vegetarian": False,
+        "available": True,
+        "image_url": "/assets/menu/vino-tinto.jpg",
+    },
+    {
+        "id": "18",
+        "name": "Cerveza",
+        "description": "Cerveza de cebada, botella de 330 ml, servida fría.",
+        "price": 3.0,
+        "category": "bebida",
+        "allergens": ["gluten"],
+        "is_vegan": False,
+        "is_vegetarian": False,
+        "available": True,
+        "image_url": "/assets/menu/cerveza.jpg",
+    },
+    {
+        "id": "19",
+        "name": "Cerveza artesanal sin gluten",
+        "description": "Cerveza artesanal sin gluten, botella de 330 ml, servida fría.",
+        "price": 4.5,
+        "category": "bebida",
+        "allergens": [],
+        "is_vegan": False,
+        "is_vegetarian": False,
+        "available": True,
+        "image_url": "/assets/menu/cerveza-artesanal.jpg",
+    },
 ]
 
 
@@ -255,3 +340,36 @@ async def seed_initial_menu():
             upsert=True,
         )
     print(f"Upserted {len(changed_items)} curated dishes.")
+
+
+async def seed_restaurant_information():
+    collection = db_instance.db["knowledge"]
+    documents = [
+        {"_id": f"curated:{item['id']}", "content": item["content"], "title": item["title"]}
+        for item in RESTAURANT_INFORMATION
+    ]
+    existing = await collection.find(
+        {"_id": {"$in": [document["_id"] for document in documents]}}
+    ).to_list(length=None)
+    by_id = {document["_id"]: document for document in existing}
+    changed = [
+        document for document in documents
+        if document["_id"] not in by_id
+        or not by_id[document["_id"]].get("embedding")
+        or any(by_id[document["_id"]].get(key) != value for key, value in document.items())
+    ]
+    if not changed:
+        return
+    vectors = await get_embeddings_batch([document["content"] for document in changed])
+    for document, vector in zip(changed, vectors):
+        await collection.update_one(
+            {"_id": document["_id"]},
+            {"$set": {
+                "title": document["title"],
+                "content": document["content"],
+                "embedding": vector,
+                "embedding_model": settings.EMBEDDING_MODEL,
+                "embedding_dimensions": settings.EMBEDDING_DIMENSIONS,
+            }},
+            upsert=True,
+        )

@@ -27,6 +27,16 @@ const menu = [
     available: true,
     allergens: ["huevo"],
   },
+  {
+    id: "16",
+    name: "Vino blanco",
+    description: "Para acompañar pescados.",
+    price: 4.5,
+    category: "bebida",
+    image_url: "/assets/menu/vino-blanco.jpg",
+    available: true,
+    allergens: ["sulfitos"],
+  },
 ];
 
 describe("MenuSection", () => {
@@ -57,5 +67,13 @@ describe("MenuSection", () => {
 
     expect(screen.getAllByText(/La información sobre alérgenos es orientativa/)).toHaveLength(1);
     expect(screen.getAllByText(/confirma siempre cualquier alergia con nuestro equipo/)).toHaveLength(1);
+  });
+
+  it("shows beverages with their photograph and allergen information", () => {
+    render(<MenuSection menu={menu} loading={false} error="" />);
+    fireEvent.click(screen.getByRole("tab", { name: "Bebidas" }));
+    expect(screen.getByRole("heading", { name: "Vino blanco" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Vino blanco" })).toHaveAttribute("src", "/assets/menu/vino-blanco.jpg");
+    expect(screen.getByRole("img", { name: "sulfitos" })).toBeInTheDocument();
   });
 });

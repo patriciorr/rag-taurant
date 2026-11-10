@@ -1,6 +1,7 @@
 # app/api/menu.py
 from typing import List
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from app.core.security import require_menu_admin
 from app.models.menu import MenuItem, MenuItemCreate, MenuItemReplace, MenuItemUpdate
 from app.service.menu import menu_service
 
@@ -30,18 +31,18 @@ async def get_all_dishes():
 async def get_dish(dish_id: str):
     return await menu_service.get_menu_item(dish_id)
 
-@router.post("/", response_model=MenuItem, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=MenuItem, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_menu_admin)])
 async def create_dish(dish_in: MenuItemCreate):
     return await menu_service.create_menu_item(dish_in)
 
-@router.put("/{dish_id}", response_model=MenuItem)
+@router.put("/{dish_id}", response_model=MenuItem, dependencies=[Depends(require_menu_admin)])
 async def replace_dish(dish_id: str, dish_in: MenuItemReplace):
     return await menu_service.replace_menu_item(dish_id, dish_in)
 
-@router.patch("/{dish_id}", response_model=MenuItem)
+@router.patch("/{dish_id}", response_model=MenuItem, dependencies=[Depends(require_menu_admin)])
 async def update_dish(dish_id: str, dish_in: MenuItemUpdate):
     return await menu_service.update_menu_item(dish_id, dish_in)
 
-@router.delete("/{dish_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{dish_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_menu_admin)])
 async def delete_dish(dish_id: str):
     await menu_service.delete_menu_item(dish_id)

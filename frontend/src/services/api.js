@@ -16,6 +16,11 @@ export const getMenu = async () => {
   return response.data;
 };
 
+export const getRestaurantInformation = async () => {
+  const response = await api.get('/information/');
+  return response.data;
+};
+
 export const createReservation = async (reservation) => {
   const response = await api.post('/reservations/', reservation);
   return response.data;

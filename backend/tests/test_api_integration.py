@@ -14,6 +14,30 @@ pytestmark = pytest.mark.integration
 
 
 @pytest.mark.asyncio
+async def test_restaurant_information_seed_preserves_existing_knowledge(mongo_api_client, monkeypatch):
+    collection = init_db.db_instance.db["knowledge"]
+    await collection.insert_one({"_id": "custom", "content": "Información personalizada."})
+    calls = []
+
+    async def embed(texts):
+        calls.append(texts)
+        return [[0.1] * init_db.settings.EMBEDDING_DIMENSIONS for _ in texts]
+
+    monkeypatch.setattr(init_db, "get_embeddings_batch", embed)
+    await init_db.seed_restaurant_information()
+    await init_db.seed_restaurant_information()
+
+    assert len(calls) == 1
+    assert await collection.find_one({"_id": "custom"})
+    stored = await collection.find_one({"_id": "curated:town"})
+    assert stored["content"] == init_db.RESTAURANT_INFORMATION[2]["content"]
+    assert stored["embedding_model"] == init_db.settings.EMBEDDING_MODEL
+    response = await mongo_api_client.get("/api/v1/information/")
+    assert response.status_code == 200
+    assert any(item["content"] == stored["content"] for item in response.json())
+
+
+@pytest.mark.asyncio
 async def test_migration_preserves_documents_and_rejects_mixed_models(
     mongo_api_client, monkeypatch
 ):
@@ -68,7 +92,9 @@ def menu_embedding(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_menu_crud_uses_real_mongo_and_stubbed_embeddings(mongo_api_client, menu_embedding):
+async def test_menu_crud_uses_real_mongo_and_stubbed_embeddings(mongo_api_client, menu_embedding, monkeypatch):
+    monkeypatch.setattr(init_db.settings, "MENU_ADMIN_TOKEN", "test-menu-token")
+    mongo_api_client.headers["Authorization"] = "Bearer test-menu-token"
     payload = {
         "name": "Gazpacho",
         "description": "Cold tomato soup",

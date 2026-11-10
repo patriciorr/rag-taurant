@@ -4,6 +4,7 @@ const categories = [
   { id: "entrante", label: "Entrantes", countLabel: "Para empezar" },
   { id: "principal", label: "Principales", countLabel: "De la cocina" },
   { id: "postre", label: "Postres", countLabel: "Algo dulce" },
+  { id: "bebida", label: "Bebidas", countLabel: "Para acompañar" },
 ];
 
 export default function MenuSection({ menu, loading, error }) {

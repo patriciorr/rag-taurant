@@ -1,5 +1,7 @@
 # Local RAGtaurant Chatbot
 
+> Historical specification: superseded by the current Google Gemini integration.
+
 ## Problem Statement
 
 The current chatbot combines RAG, tool calls, conversation history, and reservation operations in a difficult-to-control flow. Some tools access MongoDB directly and bypass the API's authorization rules; weather forecasts are not connected to the agent; and responses rely too heavily on the model following instructions not to invent data or execute changes without confirmation. Customers need a reliable assistant limited to restaurant-related tasks and consistent with menu, weather, and reservation rules.

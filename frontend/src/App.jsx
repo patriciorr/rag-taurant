@@ -5,18 +5,26 @@ import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import ChatWidget from "./components/ChatWidget";
 import MenuSection from "./components/MenuSection";
 import ReservationSection from "./components/ReservationSection";
-import { getMenu } from "./services/api";
+import { getMenu, getRestaurantInformation } from "./services/api";
 
 export default function App() {
   const [menu, setMenu] = useState([]);
   const [loading, setLoading] = useState(true);
   const [menuError, setMenuError] = useState("");
+  const [information, setInformation] = useState([]);
+  const [informationError, setInformationError] = useState(false);
 
   useEffect(() => {
     getMenu()
       .then(setMenu)
       .catch(() => setMenuError("No pudimos cargar la carta. Inténtalo de nuevo más tarde."))
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    getRestaurantInformation()
+      .then(setInformation)
+      .catch(() => setInformationError(true));
   }, []);
 
   return (
@@ -51,6 +59,20 @@ export default function App() {
         </section>
 
         <MenuSection menu={menu} loading={loading} error={menuError} />
+        <section className="restaurant-information section-wrap" id="restaurante" aria-labelledby="restaurant-information-title">
+          <p className="eyebrow">Nuestro rincón</p>
+          <h2 id="restaurant-information-title">El restaurante y su entorno</h2>
+          {informationError && <p role="alert">No pudimos cargar la información del restaurante.</p>}
+          {information.map((item) => (
+            <div key={item.id}>
+              <h3>{item.title}</h3>
+              <p>{item.content}</p>
+            </div>
+          ))}
+          <a href="https://sanjuandelpuerto.es/turismo-bienvenida/" target="_blank" rel="noopener noreferrer">
+            Descubre San Juan del Puerto en la web municipal
+          </a>
+        </section>
         <ReservationSection />
       </main>
 

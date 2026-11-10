@@ -1,13 +1,14 @@
 # main.py
 from contextlib import asynccontextmanager
 from app.core.database import connect_to_mongo, close_mongo_connection
-from app.core.init_db import init_vector_index, seed_initial_menu, validate_embedding_models
+from app.core.init_db import init_vector_index, seed_initial_menu, seed_restaurant_information, validate_embedding_models
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.menu import router as menu_router
 from app.api.reservation import router as reservation_router
 from app.api.chat import router as chat_router
+from app.api.information import router as information_router
 from app.core.exceptions import (
     DatabaseException,
     EmbeddingServiceException,
@@ -26,15 +27,15 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await connect_to_mongo()
-    await reservation_repository.ensure_indexes()
-    
-    await validate_embedding_models()
-    await init_vector_index()
-    await seed_initial_menu()
-    
-    yield
-    
-    await close_mongo_connection()
+    try:
+        await reservation_repository.ensure_indexes()
+        await validate_embedding_models()
+        await seed_initial_menu()
+        await seed_restaurant_information()
+        await init_vector_index()
+        yield
+    finally:
+        await close_mongo_connection()
 
 
 app = FastAPI(
@@ -77,10 +78,12 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 
     codes = {
         status.HTTP_400_BAD_REQUEST: "BAD_REQUEST",
+        status.HTTP_401_UNAUTHORIZED: "UNAUTHORIZED",
         status.HTTP_404_NOT_FOUND: "NOT_FOUND",
         status.HTTP_405_METHOD_NOT_ALLOWED: "METHOD_NOT_ALLOWED",
         status.HTTP_409_CONFLICT: "CONFLICT",
         status.HTTP_422_UNPROCESSABLE_CONTENT: "VALIDATION_ERROR",
+        status.HTTP_503_SERVICE_UNAVAILABLE: "SERVICE_UNAVAILABLE",
     }
     return JSONResponse(
         status_code=exc.status_code,
@@ -163,6 +166,7 @@ app.add_middleware(
 app.include_router(menu_router, prefix=settings.API_V1_STR)
 app.include_router(reservation_router, prefix=settings.API_V1_STR)
 app.include_router(chat_router, prefix=settings.API_V1_STR)
+app.include_router(information_router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 def root():

@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
         
     GOOGLE_API_KEY: str = ""
+    MENU_ADMIN_TOKEN: str = ""
     GOOGLE_MODEL: str = "gemini-3.5-flash-lite"
     EMBEDDING_MODEL: str = "gemini-embedding-001"
     EMBEDDING_DIMENSIONS: int = 768

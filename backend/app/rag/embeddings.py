@@ -18,10 +18,6 @@ def _validate_vector(vector: list[float]) -> list[float]:
     return vector
 
 
-def get_embedding_sync(text: str) -> list[float]:
-    return _validate_vector(embeddings_service.embed_query(text))
-
-
 async def get_embedding(text: str) -> list[float]:
     """Obtiene el embedding de un único texto de forma asíncrona."""
     return _validate_vector(await embeddings_service.aembed_query(text))

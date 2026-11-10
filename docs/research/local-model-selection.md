@@ -1,5 +1,7 @@
 # Seleccion de modelos locales para RAGtaurant
 
+> **Histórico — obsoleto.** Esta investigación documenta una evaluación anterior; la aplicación actual utiliza Google Gemini y ya no incluye el evaluador local. Las referencias a configuración, scripts y arquitectura describen el estado de aquel momento.
+
 Fecha de consulta: 2026-10-05
 
 ## Alcance y contexto observado
@@ -27,7 +29,7 @@ Los tamaños de Ollama son el tamaño publicado del artefacto/tag, no el pico de
 
 ### Resultados medidos en RAGtaurant
 
-La matriz completa se ejecutó con el runner versionado [`backend/scripts/evaluate_local_models.py`](../../backend/scripts/evaluate_local_models.py) y quedó guardada en [`docs/research/local-model-benchmark.json`](./local-model-benchmark.json). Se usó un contexto de 4096 tokens, temperatura 0, semilla 0 y herramientas simuladas sin escrituras reales.
+La matriz completa se ejecutó con el antiguo runner `backend/scripts/evaluate_local_models.py` (eliminado tras la migración) y quedó guardada en [`docs/research/local-model-benchmark.json`](./local-model-benchmark.json). Se usó un contexto de 4096 tokens, temperatura 0, semilla 0 y herramientas simuladas sin escrituras reales.
 
 #### Generación y tool calling
 

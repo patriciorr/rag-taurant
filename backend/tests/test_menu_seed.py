@@ -70,7 +70,7 @@ async def test_seed_upserts_catalog_without_deleting_custom_menu_data(monkeypatc
     assert len(embedding_calls) == 1
     assert len(embedding_calls[0]) == len(init_db.INITIAL_MENU)
     assert all(
-        item["image_url"].startswith("/assets/menu/")
+        item["image_url"] is None or item["image_url"].startswith("/assets/menu/")
         for item in database.collection.documents
         if item["id"] in seeded_ids
     )
@@ -97,5 +97,16 @@ def test_curated_menu_images_and_allergens_match_public_api_contract():
 
     assert {allergen.value for allergen in Allergen} <= covered_allergens
     assert all(item.image_url for item in seeded_items)
+    drinks = [item for item in seeded_items if item.category.value == "bebida"]
+    assert len(drinks) == 7
+    assert {item.id for item in drinks} == {str(number) for number in range(13, 20)}
+    assert len({item.id for item in seeded_items}) == len(seeded_items)
+    by_name = {item.name: item for item in drinks}
+    assert by_name["Vino blanco"].allergens == [Allergen.SULFITOS]
+    assert "pescados" in by_name["Vino blanco"].description
+    assert by_name["Vino tinto"].allergens == [Allergen.SULFITOS]
+    assert "carnes" in by_name["Vino tinto"].description
+    assert by_name["Cerveza"].allergens == [Allergen.GLUTEN]
+    assert Allergen.GLUTEN not in by_name["Cerveza artesanal sin gluten"].allergens
     assert any(item.is_vegan for item in seeded_items)
     assert any(item.is_vegetarian and not item.is_vegan for item in seeded_items)

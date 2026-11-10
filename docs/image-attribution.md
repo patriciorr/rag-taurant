@@ -27,3 +27,10 @@ below so the original assets can be identified:
 | `ensalada-templada.jpg`    | [photo-1608032077018-c9aad9565d29](https://images.unsplash.com/photo-1608032077018-c9aad9565d29) |
 | `tarta-almendra.jpg`       | [photo-1761637604691-801504fe1df2](https://images.unsplash.com/photo-1761637604691-801504fe1df2) |
 | `mousse-chocolate.jpg`     | [photo-1736840334919-aac2d5af73e4](https://images.unsplash.com/photo-1736840334919-aac2d5af73e4) |
+| `agua-mineral.jpg`           | [photo-1616118132534-381148898bb4](https://images.unsplash.com/photo-1616118132534-381148898bb4) |
+| `refresco-cola.jpg`          | [photo-1648569883125-d01072540b4c](https://images.unsplash.com/photo-1648569883125-d01072540b4c) |
+| `refresco-limon.jpg`         | [photo-1635232481590-00102ef8e77a](https://images.unsplash.com/photo-1635232481590-00102ef8e77a) |
+| `vino-blanco.jpg`            | [photo-1597905722448-a1df7c00000a](https://images.unsplash.com/photo-1597905722448-a1df7c00000a) |
+| `vino-tinto.jpg`             | [photo-1506377247377-2a5b3b417ebb](https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb) |
+| `cerveza.jpg`                | [photo-1777558578003-e65755409d8e](https://images.unsplash.com/photo-1777558578003-e65755409d8e) |
+| `cerveza-artesanal.jpg`      | [photo-1558642891-54be180ea339](https://images.unsplash.com/photo-1558642891-54be180ea339) |
