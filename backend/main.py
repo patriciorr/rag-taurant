@@ -1,7 +1,7 @@
 # main.py
 from contextlib import asynccontextmanager
 from app.core.database import connect_to_mongo, close_mongo_connection
-from app.core.init_db import init_vector_index, seed_initial_menu
+from app.core.init_db import init_vector_index, seed_initial_menu, validate_embedding_models
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
@@ -28,8 +28,9 @@ async def lifespan(app: FastAPI):
     await connect_to_mongo()
     await reservation_repository.ensure_indexes()
     
-    await seed_initial_menu()
+    await validate_embedding_models()
     await init_vector_index()
+    await seed_initial_menu()
     
     yield
     

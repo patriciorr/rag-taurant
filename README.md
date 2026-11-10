@@ -10,7 +10,7 @@
 [![Vite](https://img.shields.io/badge/Vite-5.x-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![LangChain](https://img.shields.io/badge/LangChain-0.3%2B-1C3C3C?logo=langchain&logoColor=white)](https://www.langchain.com/)
 [![MongoDB Atlas Local](https://img.shields.io/badge/MongoDB%20Atlas%20Local-Vector_Search-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/products/platform/atlas-vector-search)
-[![Ollama](https://img.shields.io/badge/Ollama-Qwen3_8B-black?logo=ollama&logoColor=white)](https://ollama.com/)
+[![Gemini](https://img.shields.io/badge/Google-Gemini-blue?logo=google)](https://ai.google.dev/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 [![AWS](https://custom-icon-badges.demolab.com/badge/AWS-S3-%23FF999.svg?logo=aws&logoColor=white)](https://aws.amazon.com)
 [![License: All Rights Reserved](https://img.shields.io/badge/License-All%20Rights%20Reserved-lightgrey?logo=data:image/svg%2bxml;base64,PHN2ZyB3aWR0aD0iMTk3cHgiIGhlaWdodD0iMTk3cHgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmVyc2lvbj0iMS4xIj4KCTxjaXJjbGUgY3g9Ijk4IiBjeT0iOTgiIHI9Ijk4IiBmaWxsPSJibGFjayIvPgoJPGNpcmNsZSBjeD0iOTgiIGN5PSI5OCIgcj0iNzgiIGZpbGw9IndoaXRlIi8+Cgk8Y2lyY2xlIGN4PSI5OCIgY3k9Ijk4IiByPSI1NSIgZmlsbD0iYmxhY2siLz4KCTxjaXJjbGUgY3g9Ijk4IiBjeT0iOTgiIHI9IjMwIiBmaWxsPSJ3aGl0ZSIvPgoJPHJlY3QgeD0iMTE1IiB5PSI4NSIgd2lkdGg9IjQ1IiBoZWlnaHQ9IjI1IiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4=)](./LICENSE)
@@ -23,25 +23,27 @@
 
 ## 📖 Overview
 
-**RAGtaurant** is a full-stack, intelligent restaurant application that seamlessly bridges modern web design with local AI agent technology. By leveraging **Retrieval-Augmented Generation (RAG)**, **LangChain Tool Calling**, and local Ollama embeddings stored in **MongoDB Atlas Local** vector indexes, RAGtaurant provides customers with an interactive assistant capable of answering menu queries, checking local weather conditions, and preparing table reservations.
+**RAGtaurant** uses **Retrieval-Augmented Generation (RAG)**, **LangChain tool calling**, and Google Gemini embeddings stored in **MongoDB Atlas Local** vector indexes to answer menu queries, check local weather, and prepare table reservations.
 
-The application features a sleek **React + Material UI** frontend served through **Nginx**, backed by a high-performance **FastAPI** REST API and a containerized **Ollama** LLM runner.
+The application features a **React + Material UI** frontend served through **Nginx**, a **FastAPI** backend, and the Gemini API for model inference.
 
 ---
 
 ## ✨ Key Features
 
-- 🤖 **AI-Powered Gourmet Assistant:** Local chatbot powered by **Qwen3 8B** with tool calling and conversational memory.
+- 🤖 **AI-Powered Gourmet Assistant:** Gemini chatbot with tool calling and conversational memory.
+- 💬 **Conversational answers:** Gemini summarizes retrieved information concisely and may suggest a relevant follow-up. Retrieval errors and missing evidence are reported rather than rewritten; allergy questions receive a cross-contact warning. Model-generated answers can still be inaccurate.
+- 📝 **Readable chat:** Assistant messages support paragraphs, lists, and emphasis. HTML, links, images, and other rich content are not rendered; customer messages stay plain text.
 - 🥗 **Andalusian digital menu:** A responsive Spanish-first restaurant experience with illustrated entrantes, principales and postres, clear vegetarian/vegan badges, listed allergens and an allergy safety notice.
 - 📅 **Reservation management:** Create, look up, update and cancel reservations. Protected lookup and changes require the reservation code, email and phone.
 - 🪣 **Local photo storage:** Licensed stock images are seeded into a local-only S3-compatible LocalStack bucket; no AWS account or credentials are needed.
-- 🔍 **Vector Search & RAG:** Semantic search over menu items and restaurant information using **MongoDB Atlas Local** vector search and local Ollama embeddings.
+- 🔍 **Vector Search & RAG:** Semantic search over menu items and restaurant information using **MongoDB Atlas Local** vector search and Gemini embeddings.
 - 🛠️ **Autonomous Agent Tools:**
   - 📖 `search_menu_and_info`: Performs vector similarity search for dish recommendations and details.
   - ☀️ `get_weather_forecast`: Retrieves the Open-Meteo forecast for the restaurant's configured location, covering today and the next 13 days.
   - 📅 `make_table_reservation`: Handles table reservations with date, time, and guest count validation.
 - ⚡ **Asynchronous REST API:** Lightweight FastAPI backend with CORS middleware and Pydantic schema validations.
-- 🐳 **Full-Stack Docker Orchestration:** Complete multi-container setup (Nginx Frontend, FastAPI Backend, Ollama Engine) managed via Docker Compose.
+- 🐳 **Full-Stack Docker Orchestration:** Nginx, FastAPI, MongoDB and LocalStack managed via Docker Compose.
 
 ---
 
@@ -65,7 +67,7 @@ The application features a sleek **React + Material UI** frontend served through
 | **FastAPI**             | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)       | Asynchronous RESTful API framework               |
 | **LangChain**           | ![LangChain](https://img.shields.io/badge/LangChain-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white) | AI agent orchestration and tool execution        |
 | **MongoDB Atlas Local** | ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)       | Local document and vector database               |
-| **Ollama (Qwen3 8B)**   | ![Ollama](https://img.shields.io/badge/Ollama-000000?style=for-the-badge&logo=ollama&logoColor=white)          | Local LLM inference engine with function calling |
+| **Google Gemini**       | ![Google](https://img.shields.io/badge/Google-Gemini-blue?logo=google) | Cloud chat and embedding models |
 | **Docker**              | ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)          | Multi-container environment orchestration        |
 
 ---
@@ -115,7 +117,7 @@ Ensure you have installed on your host system:
 
 ### 🐳 Quick Start with Docker Compose (Recommended)
 
-Launch the stack (Nginx, React, FastAPI, MongoDB Atlas Local, and Ollama) with Docker Compose:
+Launch the stack (Nginx, React, FastAPI, MongoDB Atlas Local, and LocalStack) with Docker Compose:
 
 #### 1. Clone the Repository
 
@@ -124,38 +126,32 @@ git clone https://github.com/patriciorr/rag-taurant.git
 cd rag-taurant
 ```
 
-#### 2. Start Ollama and download the configured local models
+#### 2. Configure Google Gemini
 
-Ollama runs in its Docker image. Pull the chat and embedding models into its persistent volume before starting the backend:
+Create a Gemini API key in [Google AI Studio](https://aistudio.google.com/) and set `GOOGLE_API_KEY` in a root `.env` file or in your shell. Do not commit the key. Docker Compose passes it to the backend.
+
+The defaults are `GOOGLE_MODEL=gemini-3.5-flash-lite`, `EMBEDDING_MODEL=gemini-embedding-001`, and `EMBEDDING_DIMENSIONS=768`. Override them in the root `.env` or shell if needed. Requests are billed according to your Google account and API plan.
+
+The API receives chat messages, tool results and text used for embeddings; conversations can contain reservation contact details. Use fictional data for development and review Google's retention, data usage, region and contractual terms before handling real customer data.
+
+#### 3. Migrate existing vectors, if any
 
 ```bash
-docker compose up -d ollama
-docker exec ollama_restaurant ollama pull qwen3:8b
-docker exec ollama_restaurant ollama pull bge-m3
+docker compose stop backend
+docker compose up -d --wait mongodb
+docker compose run --build --rm --no-deps backend python scripts/reindex_embeddings.py
 ```
 
-#### 3. Start the application
+Run this step when upgrading an existing database or changing embedding model or dimensions. Keep all backend instances stopped throughout migration; queries and writes must not run concurrently. The script generates and validates all replacements before changing indexes and vectors for menu and restaurant knowledge. It retains the documents, but search is unavailable during migration. If migration fails or is interrupted, keep the backend stopped and rerun it to completion. The backend refuses to start when it detects vectors from an unknown or incompatible model.
+
+#### 4. Start and access the application
 
 ```bash
 docker compose up -d --build
 ```
 
-#### 4. Access the Platform
-
 - **Web Application:** `http://localhost`
 - **REST API Documentation (Swagger):** `http://localhost:8000/docs`
-- **Ollama Engine API:** `http://localhost:11435` (host port; container port remains `11434`)
-
-The host port can be changed with `OLLAMA_HOST_PORT`. The backend container uses the internal Compose address `http://ollama:11434`.
-
-If MongoDB already contains vectors made with another embedding model, reindex them before starting the backend:
-
-```bash
-docker compose up -d ollama mongodb
-docker compose run --build --rm --no-deps backend python scripts/reindex_embeddings.py
-```
-
-The script generates and validates every replacement vector before changing indexes or stored embeddings. It regenerates every menu vector and every existing restaurant-knowledge vector, then updates each vector-search index to the selected model's dimension.
 
 ---
 
@@ -163,15 +159,14 @@ The script generates and validates every replacement vector before changing inde
 
 If you prefer to run services manually outside Docker:
 
-#### 1. Start the Ollama Docker service
+#### 1. Start the local services and configure Gemini
 
 ```bash
-docker compose up -d ollama
-docker exec ollama_restaurant ollama pull qwen3:8b
-docker exec ollama_restaurant ollama pull bge-m3
+docker compose up -d --wait mongodb localstack
+export GOOGLE_API_KEY="your-api-key"
 ```
 
-The local backend defaults to `http://localhost:11435`; Ollama itself still runs inside Docker.
+Alternatively, put `GOOGLE_API_KEY` and optional model overrides in `backend/.env`. Reindex an existing database with `python scripts/reindex_embeddings.py` from `backend/` before starting the backend, following the migration precautions above.
 
 #### 2. Backend Setup
 
@@ -250,7 +245,7 @@ stock-image asset list.
 ## 🧪 Running the tests
 
 Run everything from the repository root. The backend integration tests need the
-local MongoDB container; Ollama is not required.
+local MongoDB container; the tests stub Gemini and do not require a Google key.
 
 ```bash
 # Frontend (Vitest + React Testing Library)
@@ -301,15 +296,15 @@ cd backend
 python -m pytest -c pytest.ini
 ```
 
-The `mongodb` service runs MongoDB Atlas Local from the official `mongodb/mongodb-atlas-local` image and publishes port `27017` for tests run on the host. `--wait` does not return until its health check succeeds. The full test command includes both unit and MongoDB integration tests; Ollama is not required because embeddings are stubbed.
+The `mongodb` service runs MongoDB Atlas Local from the official `mongodb/mongodb-atlas-local` image and publishes port `27017` for tests run on the host. `--wait` does not return until its health check succeeds. The full test command includes both unit and MongoDB integration tests; Gemini is stubbed.
 
 The integration tests use a unique `rag_taurant_test_*` database per test and drop it during cleanup. To use another MongoDB instance, set `TEST_MONGODB_URI` before running the tests and ensure it points to a disposable test deployment; test databases are deleted automatically.
 
 ### Local Model Evaluation
 
-The versioned Spanish evaluation set compares Qwen3 8B with Llama 3.2 3B for tool selection, arguments, and grounded responses; it compares BGE-M3 with Nomic Embed Text for retrieval. Reservation tools only return canned simulated results and never modify MongoDB. The tests use deterministic inputs and do not call Ollama or the network.
+This historical benchmark predates the Gemini migration. Its versioned Spanish evaluation set compares local Qwen3, Llama, BGE-M3 and Nomic models. It is not a Gemini quality benchmark.
 
-With the Ollama container running and all four models pulled, run the CPU and GPU profiles from `backend/`:
+To repeat it, provide a separate Ollama Docker container named `ollama_restaurant` with the four models pulled; it is no longer part of Compose. Then run the CPU and GPU profiles from `backend/`:
 
 ```bash
 python scripts/evaluate_local_models.py \
@@ -318,11 +313,11 @@ python scripts/evaluate_local_models.py \
   --output ../docs/research/local-model-benchmark.json
 ```
 
-The runner records total response latency, peak Ollama-container memory, peak GPU memory, tool/argument accuracy, grounding, and retrieval Recall@3/MRR. It unloads each model between profiles. See [the model-selection report](./docs/research/local-model-selection.md) for the chosen defaults and measured results.
+The runner records total response latency, peak Ollama-container memory, peak GPU memory, tool/argument accuracy, grounding, and retrieval Recall@3/MRR. It unloads each model between profiles. See [the historical model-selection report](./docs/research/local-model-selection.md) for its measured results.
 
 ### Agent Autonomous Tools
 
-1. **`search_menu(query, vegan_only, vegetarian_only, exclude_allergens, available_only)`**: Searches the menu using stored vector matches and structured dietary/allergen filters.
+1. **`search_menu(query, vegan_only, vegetarian_only, exclude_allergens, include_allergens, available_only)`**: Searches the menu using stored vector matches and structured dietary/allergen filters. `exclude_allergens` excludes dishes with any listed allergen; `include_allergens` matches dishes with at least one listed allergen. These describe recorded allergens, not a guarantee against cross-contact.
 2. **`search_info(query)`**: Queries the restaurant knowledge collection through MongoDB vector search.
 3. **`get_weather_forecast(date: str | None)`**: Retrieves the 14-day Open-Meteo forecast or a specific available date; a verified active reservation date can provide the context.
 4. **`make_table_reservation(customer_name, email, phone, date, time, guests)`**: Prepares and summarizes a new reservation without creating it until explicit confirmation.

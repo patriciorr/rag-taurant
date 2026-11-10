@@ -156,6 +156,28 @@ INITIAL_MENU = [
 ]
 
 
+async def validate_embedding_models():
+    collection_names = set(await db_instance.db.list_collection_names())
+    for collection_name in ("menu", "knowledge"):
+        if collection_name not in collection_names:
+            continue
+        incompatible = await db_instance.db[collection_name].count_documents(
+            {
+                "embedding": {"$exists": True},
+                "$or": [
+                    {"embedding_model": {"$ne": settings.EMBEDDING_MODEL}},
+                    {"embedding_dimensions": {"$ne": settings.EMBEDDING_DIMENSIONS}},
+                ],
+            }
+        )
+        if incompatible:
+            raise RuntimeError(
+                f"Collection {collection_name!r} contains {incompatible} vectors "
+                "with an unknown or incompatible embedding model. Run "
+                "'python scripts/reindex_embeddings.py' before starting the backend."
+            )
+
+
 async def init_vector_index():
     """Creates the vector search index on the 'menu' collection."""
     collection_names = set(await db_instance.db.list_collection_names())
@@ -224,7 +246,12 @@ async def seed_initial_menu():
     for item, vector in zip(changed_items, vectors):
         await collection.update_one(
             {"id": item["id"]},
-            {"$set": {**item, "embedding": vector}},
+            {"$set": {
+                **item,
+                "embedding": vector,
+                "embedding_model": settings.EMBEDDING_MODEL,
+                "embedding_dimensions": settings.EMBEDDING_DIMENSIONS,
+            }},
             upsert=True,
         )
     print(f"Upserted {len(changed_items)} curated dishes.")

@@ -6,11 +6,10 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
         
-    EMBEDDING_MODEL: str = "bge-m3"
-    EMBEDDING_DIMENSIONS: int = 1024
-    
-    OLLAMA_BASE_URL: str = "http://localhost:11435"
-    OLLAMA_MODEL: str = "qwen3:8b"
+    GOOGLE_API_KEY: str = ""
+    GOOGLE_MODEL: str = "gemini-3.5-flash-lite"
+    EMBEDDING_MODEL: str = "gemini-embedding-001"
+    EMBEDDING_DIMENSIONS: int = 768
     
     RESTAURANT_LAT: float = 37.3167
     RESTAURANT_LON: float = -6.8414

@@ -1,27 +1,4 @@
 services:
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama_restaurant
-    ports:
-      - "${OLLAMA_HOST_PORT:-11435}:11434"
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
-    volumes:
-      - ollama_storage:/root/.ollama
-    networks:
-      - restaurant-net
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "ollama", "list"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   mongodb:
     image: mongodb/mongodb-atlas-local:latest
     container_name: mongodb_atlas_restaurant
@@ -72,15 +49,13 @@ services:
       - ./backend:/app
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     environment:
-      - OLLAMA_BASE_URL=http://ollama:11434
-      - OLLAMA_MODEL=qwen3:8b
-      - EMBEDDING_MODEL=bge-m3
-      - EMBEDDING_DIMENSIONS=1024
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - GOOGLE_MODEL=${GOOGLE_MODEL:-gemini-3.5-flash-lite}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-gemini-embedding-001}
+      - EMBEDDING_DIMENSIONS=${EMBEDDING_DIMENSIONS:-768}
       - MONGODB_URI=mongodb://mongodb:27017/?directConnection=true
       - DB_NAME=rag-taurant
     depends_on:
-      ollama:
-        condition: service_healthy
       mongodb:
         condition: service_healthy
     networks:
@@ -108,7 +83,6 @@ networks:
     driver: bridge
 
 volumes:
-  ollama_storage:
   mongodb_data:
   configdb:
   mongot:

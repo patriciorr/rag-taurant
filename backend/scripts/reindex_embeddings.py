@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regenerate all menu and restaurant-knowledge vectors for the configured Ollama model."""
+"""Regenerate menu and restaurant-knowledge vectors with the configured model."""
 
 import argparse
 import asyncio
@@ -13,7 +13,7 @@ from typing import Any
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from langchain_ollama import OllamaEmbeddings
+from langchain_core.embeddings import Embeddings
 from pymongo import AsyncMongoClient, UpdateOne
 
 from app.core.config import settings
@@ -23,6 +23,7 @@ from app.evaluation.embedding_migration import (
     vector_index_definition,
 )
 from app.service.menu import menu_embedding_text
+from app.rag.embeddings import embeddings_service
 
 
 logger = logging.getLogger(__name__)
@@ -107,7 +108,7 @@ def _embedding_text(collection_name: str, document: Mapping[str, Any]) -> str:
 async def _prepare_collection_embeddings(
     database: Any,
     collection_name: str,
-    embedding_model: OllamaEmbeddings,
+    embedding_model: Embeddings,
     dimensions: int,
 ) -> tuple[list[dict[str, Any]], list[list[float]]]:
     collection = database[collection_name]
@@ -138,7 +139,7 @@ async def _prepare_collection_embeddings(
 async def _migrate_collections(
     database: Any,
     collection_names: list[str],
-    embedding_model: OllamaEmbeddings,
+    embedding_model: Embeddings,
     dimensions: int,
 ) -> dict[str, int]:
     prepared_embeddings = {}
@@ -179,7 +180,11 @@ async def _store_collection_embeddings(
     operations = [
         UpdateOne(
             {"_id": document["_id"]},
-            {"$set": {"embedding": vector}},
+            {"$set": {
+                "embedding": vector,
+                "embedding_model": settings.EMBEDDING_MODEL,
+                "embedding_dimensions": dimensions,
+            }},
         )
         for document, vector in zip(documents, vectors)
     ]
@@ -212,14 +217,10 @@ async def reindex_database() -> dict[str, int]:
         target_collections = ["menu"]
         if "knowledge" in collection_names:
             target_collections.append("knowledge")
-        embedding_model = OllamaEmbeddings(
-            model=settings.EMBEDDING_MODEL,
-            base_url=settings.OLLAMA_BASE_URL,
-        )
         return await _migrate_collections(
             database,
             target_collections,
-            embedding_model,
+            embeddings_service,
             settings.EMBEDDING_DIMENSIONS,
         )
     finally:

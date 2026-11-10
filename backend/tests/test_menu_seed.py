@@ -74,6 +74,12 @@ async def test_seed_upserts_catalog_without_deleting_custom_menu_data(monkeypatc
         for item in database.collection.documents
         if item["id"] in seeded_ids
     )
+    assert all(
+        item["embedding_model"] == init_db.settings.EMBEDDING_MODEL
+        and item["embedding_dimensions"] == init_db.settings.EMBEDDING_DIMENSIONS
+        for item in database.collection.documents
+        if item["id"] in seeded_ids
+    )
 
     await init_db.seed_initial_menu()
 

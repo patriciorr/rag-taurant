@@ -7,9 +7,51 @@ from app.repository.reservation import reservation_repository
 
 from app.core import init_db
 from app.service import menu as menu_module
+from scripts import reindex_embeddings
 
 
 pytestmark = pytest.mark.integration
+
+
+@pytest.mark.asyncio
+async def test_migration_preserves_documents_and_rejects_mixed_models(
+    mongo_api_client, monkeypatch
+):
+    database = init_db.db_instance.db
+    await database["menu"].insert_one(
+        {"id": "custom", "name": "Gazpacho", "embedding": [0.1] * 768}
+    )
+    await database["knowledge"].insert_one(
+        {"content": "La terraza abre de día.", "embedding": [0.2] * 768}
+    )
+
+    with pytest.raises(RuntimeError, match="unknown or incompatible"):
+        await init_db.validate_embedding_models()
+
+    class FakeEmbeddings:
+        async def aembed_documents(self, texts):
+            return [[0.3] * init_db.settings.EMBEDDING_DIMENSIONS for _ in texts]
+
+    async def ensure_index(database, collection_name, dimensions):
+        pass
+
+    monkeypatch.setattr(reindex_embeddings, "_ensure_vector_index", ensure_index)
+    counts = await reindex_embeddings._migrate_collections(
+        database, ["menu", "knowledge"], FakeEmbeddings(), init_db.settings.EMBEDDING_DIMENSIONS
+    )
+
+    assert counts == {"menu": 1, "knowledge": 1}
+    menu = await database["menu"].find_one({"id": "custom"})
+    knowledge = await database["knowledge"].find_one({})
+    assert menu["name"] == "Gazpacho"
+    assert knowledge["content"] == "La terraza abre de día."
+    assert menu["embedding_model"] == init_db.settings.EMBEDDING_MODEL
+    assert knowledge["embedding_model"] == init_db.settings.EMBEDDING_MODEL
+    await init_db.validate_embedding_models()
+
+    await database["knowledge"].update_one({}, {"$set": {"embedding_model": "old-model"}})
+    with pytest.raises(RuntimeError, match="unknown or incompatible"):
+        await init_db.validate_embedding_models()
 
 
 @pytest.fixture
@@ -18,6 +60,11 @@ def menu_embedding(monkeypatch):
         return [0.125, 0.25, 0.5]
 
     monkeypatch.setattr(menu_module, "get_embedding", get_embedding)
+
+    async def get_embeddings_batch(texts):
+        return [[0.125, 0.25, 0.5] for _ in texts]
+
+    monkeypatch.setattr(menu_module, "get_embeddings_batch", get_embeddings_batch)
 
 
 @pytest.mark.asyncio

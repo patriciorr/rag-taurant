@@ -7,7 +7,7 @@ class MenuItemNotFoundException(Exception):
         super().__init__(f"Dish '{dish_id}' not found.")
 
 class EmbeddingServiceException(Exception):
-    """Raised when communication or embedding generation with Ollama fails."""
+    """Raised when communication or embedding generation fails."""
     def __init__(self, detail: str):
         self.detail = detail
         super().__init__(f"Error in the embedding service: {detail}")

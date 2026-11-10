@@ -78,6 +78,8 @@ async def test_reservation_edit_is_authorized_summarized_and_applied_only_after_
     assert "19:00" in proposed["output"]
     assert "4" in proposed["output"]
     assert "todavía no se ha modificado" in proposed["output"].lower()
+    assert "':\n\n- Fecha:" in proposed["output"]
+    assert "\n\nTodavía no se ha modificado" in proposed["output"]
     assert updates == []
 
     completed = await runner.ainvoke({"input": "Sí, confirmar"}, config)

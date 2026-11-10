@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 from fastapi.testclient import TestClient
+from langchain_core.messages import AIMessage
 
 from app.rag import agent as agent_module
 from main import app
@@ -51,3 +52,13 @@ def test_chat_history_is_isolated_by_session_and_continues_within_a_session(monk
     assert [(message.type, message.content) for message in second_tab_history] == [
         ("human", "Mensaje de la pestaña dos"),
     ]
+
+
+def test_gemini_text_blocks_are_rendered_as_text_not_python_data():
+    response = AIMessage(content=[
+        {"type": "text", "text": "El gazpacho cuesta 8,50 €."},
+    ])
+
+    assert agent_module.RAGChatbotRunner._response_text(response) == (
+        "El gazpacho cuesta 8,50 €."
+    )

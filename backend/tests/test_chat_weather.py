@@ -71,6 +71,11 @@ async def test_weather_uses_only_a_verified_active_reservation_date(
             self.arguments = arguments
             return "Previsión consultada."
 
+    class Composer:
+        async def ainvoke(self, messages):
+            assert messages[-1].content == "Previsión consultada."
+            return SimpleNamespace(text="Previsión consultada.")
+
     async def get_verified_table_reservation(**arguments):
         assert arguments == {
             "reservation_id": "RES-1",
@@ -81,6 +86,7 @@ async def test_weather_uses_only_a_verified_active_reservation_date(
 
     weather_tool = WeatherTool()
     monkeypatch.setattr(agent_module, "llm_with_tools", FakeModel())
+    monkeypatch.setattr(agent_module, "llm", Composer())
     monkeypatch.setattr(agent_module, "session_store", {})
     monkeypatch.setattr(
         agent_module,

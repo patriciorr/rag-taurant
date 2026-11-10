@@ -5,6 +5,8 @@ from pymongo.errors import PyMongoError
 from app.models.menu import MenuItem, MenuItemCreate, MenuItemReplace, MenuItemUpdate
 from app.repository.menu import menu_repository
 from app.rag.embeddings import get_embedding
+from app.rag.embeddings import get_embeddings_batch
+from app.core.config import settings
 from app.core.exceptions import MenuItemNotFoundException, EmbeddingServiceException, DatabaseException
 
 
@@ -65,14 +67,16 @@ class MenuService:
         text_for_rag = self._get_text_for_embedding(dish_data)
 
         try:
-            embedding = await get_embedding(text_for_rag)
+            embedding = (await get_embeddings_batch([text_for_rag]))[0]
         except Exception as e:
             raise EmbeddingServiceException(f"Failed to generate embedding: {str(e)}")
 
         db_doc = {
             "id": dish_id,
             **dish_data,
-            "embedding": embedding
+            "embedding": embedding,
+            "embedding_model": settings.EMBEDDING_MODEL,
+            "embedding_dimensions": settings.EMBEDDING_DIMENSIONS,
         }
 
         try:
@@ -106,7 +110,9 @@ class MenuService:
 
         text_for_rag = self._get_text_for_embedding(merged_data)
         try:
-            merged_data["embedding"] = await get_embedding(text_for_rag)
+            merged_data["embedding"] = (await get_embeddings_batch([text_for_rag]))[0]
+            merged_data["embedding_model"] = settings.EMBEDDING_MODEL
+            merged_data["embedding_dimensions"] = settings.EMBEDDING_DIMENSIONS
         except Exception as e:
             raise EmbeddingServiceException(f"Error updating embedding: {str(e)}")
 
@@ -119,6 +125,8 @@ class MenuService:
             raise MenuItemNotFoundException(dish_id)
 
         merged_data.pop("embedding", None)
+        merged_data.pop("embedding_model", None)
+        merged_data.pop("embedding_dimensions", None)
         return MenuItem(**merged_data)
 
     async def delete_menu_item(self, dish_id: str) -> None:

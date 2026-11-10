@@ -1,8 +1,9 @@
 // src/components/ChatWidget.jsx
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import {
   Box, Fab, Paper, Typography, TextField, IconButton,
-  List, ListItem, ListItemText, CircularProgress, Slide
+  List, ListItem, CircularProgress, Slide
 } from '@mui/material';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import CloseIcon from '@mui/icons-material/Close';
@@ -85,12 +86,37 @@ export default function ChatWidget() {
                     sx={{
                       p: 1.5,
                       maxWidth: '80%',
+                      minWidth: 0,
+                      overflowWrap: 'anywhere',
                       borderRadius: 2,
                       bgcolor: msg.sender === 'user' ? 'var(--gold)' : 'white',
                       color: msg.sender === 'user' ? 'var(--green)' : 'text.primary',
                     }}
                   >
-                    <ListItemText primary={msg.text} primaryTypographyProps={{ variant: 'body1' }} />
+                    {msg.sender === 'bot' ? (
+                      <Box
+                        sx={{
+                          typography: 'body1',
+                          '& p': { margin: '0 0 0.6em', whiteSpace: 'pre-line' },
+                          '& ul, & ol': { margin: '0 0 0.6em', paddingLeft: '1.4em' },
+                          '& li': { marginBottom: '0.25em' },
+                          '& li p': { margin: 0 },
+                          '& > :last-child': { marginBottom: 0 },
+                        }}
+                      >
+                        <ReactMarkdown
+                          allowedElements={['p', 'strong', 'em', 'ul', 'ol', 'li', 'br']}
+                          unwrapDisallowed
+                          skipHtml
+                        >
+                          {msg.text}
+                        </ReactMarkdown>
+                      </Box>
+                    ) : (
+                      <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                        {msg.text}
+                      </Typography>
+                    )}
                   </Paper>
                 </ListItem>
               ))}

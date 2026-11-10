@@ -8,11 +8,16 @@ class MenuRepository:
         return db_instance.db["menu"]
 
     async def list_menu(self) -> List[dict]:
-        cursor = self.collection.find({}, {"_id": 0, "embedding": 0})
+        cursor = self.collection.find(
+            {}, {"_id": 0, "embedding": 0, "embedding_model": 0, "embedding_dimensions": 0}
+        )
         return [doc async for doc in cursor]
 
     async def get_menu_item(self, dish_id: str) -> Optional[dict]:
-        return await self.collection.find_one({"id": dish_id}, {"_id": 0, "embedding": 0})
+        return await self.collection.find_one(
+            {"id": dish_id},
+            {"_id": 0, "embedding": 0, "embedding_model": 0, "embedding_dimensions": 0},
+        )
 
     async def add_menu_item(self, item: dict) -> None:
         await self.collection.insert_one(item)
@@ -40,6 +45,8 @@ class MenuRepository:
                 "$project": {
                     "_id": 0,
                     "embedding": 0,
+                    "embedding_model": 0,
+                    "embedding_dimensions": 0,
                     "score": {"$meta": "vectorSearchScore"}
                 }
             }

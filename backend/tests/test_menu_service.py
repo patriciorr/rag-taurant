@@ -28,12 +28,15 @@ async def test_replace_menu_item_rebuilds_embedding_and_returns_complete_item(mo
         persisted.update(updated_item)
         return True
 
-    async def get_embedding(text):
-        return [0.2, 0.3]
+    observed = []
+
+    async def get_embeddings_batch(texts):
+        observed.extend(texts)
+        return [[0.2, 0.3]]
 
     monkeypatch.setattr(menu_module.menu_repository, "get_menu_item", get_menu_item)
     monkeypatch.setattr(menu_module.menu_repository, "update_menu_item", update_menu_item)
-    monkeypatch.setattr(menu_module, "get_embedding", get_embedding)
+    monkeypatch.setattr(menu_module, "get_embeddings_batch", get_embeddings_batch)
 
     updated = await service.replace_menu_item(
         "dish-1",
@@ -52,3 +55,6 @@ async def test_replace_menu_item_rebuilds_embedding_and_returns_complete_item(mo
     assert updated.name == "Paella"
     assert persisted["name"] == "Paella"
     assert persisted["embedding"] == [0.2, 0.3]
+    assert persisted["embedding_model"] == menu_module.settings.EMBEDDING_MODEL
+    assert len(observed) == 1
+    assert "Paella" in observed[0]

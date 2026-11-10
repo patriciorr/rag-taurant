@@ -1,17 +1,36 @@
 # app/rag/embeddings.py
-from langchain_ollama import OllamaEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from app.core.config import settings
 
-# Instancia global configurada con el modelo y la URL de Ollama
-embeddings_service = OllamaEmbeddings(
+embeddings_service = GoogleGenerativeAIEmbeddings(
     model=settings.EMBEDDING_MODEL,
-    base_url=settings.OLLAMA_BASE_URL
+    google_api_key=settings.GOOGLE_API_KEY,
+    output_dimensionality=settings.EMBEDDING_DIMENSIONS,
 )
+
+
+def _validate_vector(vector: list[float]) -> list[float]:
+    if len(vector) != settings.EMBEDDING_DIMENSIONS:
+        raise ValueError(
+            f"Embedding model returned {len(vector)} dimensions; "
+            f"expected {settings.EMBEDDING_DIMENSIONS}."
+        )
+    return vector
+
+
+def get_embedding_sync(text: str) -> list[float]:
+    return _validate_vector(embeddings_service.embed_query(text))
+
 
 async def get_embedding(text: str) -> list[float]:
     """Obtiene el embedding de un único texto de forma asíncrona."""
-    return await embeddings_service.aembed_query(text)
+    return _validate_vector(await embeddings_service.aembed_query(text))
 
 async def get_embeddings_batch(texts: list[str]) -> list[list[float]]:
     """Obtiene embeddings para una lista de textos en lote de forma asíncrona."""
-    return await embeddings_service.aembed_documents(texts)
+    vectors = await embeddings_service.aembed_documents(texts)
+    if len(vectors) != len(texts):
+        raise ValueError(
+            f"Embedding model returned {len(vectors)} vectors for {len(texts)} documents."
+        )
+    return [_validate_vector(vector) for vector in vectors]

@@ -1,9 +1,10 @@
 # backend/app/rag/tools.py
 from typing import Optional
+import re
 from langchain_core.tools import tool
 from pymongo import MongoClient
 from app.core.config import settings
-from app.rag.embeddings import embeddings_service
+from app.rag.embeddings import get_embedding_sync
 from app.models.menu import Allergen
 from app.models.reservation import (
     ReservationContact,
@@ -27,17 +28,25 @@ async def search_menu(
     vegetarian_only: bool = False,
     exclude_allergens: Optional[list[str]] = None,
     available_only: bool = True,
+    include_allergens: Optional[list[str]] = None,
 ) -> str:
-    """Busca platos y aplica las preferencias usando los atributos registrados de la carta."""
+    """Busca platos por sus atributos registrados.
+
+    exclude_allergens excluye platos que contienen cualquiera de los alérgenos indicados.
+    include_allergens devuelve platos que contienen al menos uno de los indicados.
+    """
     items = await menu_service.list_menu()
     if not items:
         return "No hay información de platos disponible en la carta para responder."
 
     valid_allergens = {allergen.value for allergen in Allergen}
     excluded = set(exclude_allergens or [])
-    unknown_allergens = excluded - valid_allergens
+    included = set(include_allergens or [])
+    unknown_allergens = (excluded | included) - valid_allergens
     if unknown_allergens:
         return "No pude aplicar el filtro porque contiene alérgenos no reconocidos: " + ", ".join(sorted(unknown_allergens))
+    if excluded & included:
+        return "No pude aplicar el filtro porque pide incluir y excluir el mismo alérgeno."
 
     similar_items = await menu_service.search_similar_dishes(query, limit=len(items))
     items_by_id = {item.id: item for item in items}
@@ -46,6 +55,9 @@ async def search_menu(
         for result in similar_items
         if result.get("id") in items_by_id
     ]
+    matched_ids = {item.id for item in matches}
+    if included or excluded:
+        matches.extend(item for item in items if item.id not in matched_ids)
 
     matches = [
         item
@@ -54,6 +66,7 @@ async def search_menu(
         and (not vegetarian_only or item.is_vegetarian)
         and (not available_only or item.available)
         and not excluded.intersection(allergen.value for allergen in item.allergens)
+        and (not included or included.intersection(allergen.value for allergen in item.allergens))
     ]
     if not matches:
         return "No encontré platos disponibles que coincidan con la consulta y los filtros indicados."
@@ -66,17 +79,19 @@ async def search_menu(
             f"Alérgenos registrados: {allergens}. "
             f"Vegano: {'sí' if item.is_vegan else 'no'}; "
             f"vegetariano: {'sí' if item.is_vegetarian else 'no'}; "
-            f"disponibilidad: {'disponible' if item.available else 'no disponible'}. "
-            "La carta no indica datos sobre contaminación cruzada, por lo que no se puede garantizar "
-            "que un plato sea seguro para una alergia."
+            f"disponibilidad: {'disponible' if item.available else 'no disponible'}."
         )
+    response.append(
+        "La carta no indica datos sobre contaminación cruzada, por lo que no se puede garantizar "
+        "que un plato sea seguro para una alergia."
+    )
     return "\n".join(response)
 
 # --- BÚSQUEDA RAG: INFORMACIÓN GENERAL (llm.txt) ---
 @tool
 def search_info(query: str) -> str:
     """Busca información institucional del restaurante: ubicación, horarios, políticas de terraza, aparcamiento o normas."""
-    query_vector = embeddings_service.embed_query(query)
+    query_vector = get_embedding_sync(query)
     
     pipeline = [
         {
@@ -88,7 +103,7 @@ def search_info(query: str) -> str:
                 "limit": 3
             }
         },
-        {"$project": {"_id": 0, "embedding": 0}}
+        {"$project": {"_id": 0, "embedding": 0, "embedding_model": 0, "embedding_dimensions": 0}}
     ]
     
     results = list(db["knowledge"].aggregate(pipeline))
@@ -102,19 +117,24 @@ def search_info(query: str) -> str:
 
 # --- CRUD RESERVAS ---
 
+def _escape_markdown(value: str) -> str:
+    escaped = re.sub(r"([\\`*_\[\]<>])", r"\\\1", value)
+    return escaped.replace("\r\n", "&#10;").replace("\r", "&#10;").replace("\n", "&#10;")
+
+
 def prepare_table_reservation(arguments: dict[str, object]) -> ReservationCreate:
     return ReservationCreate(**arguments)
 
 
 def format_reservation_confirmation(reservation: ReservationCreate) -> str:
     return (
-        "Revisa los datos de la reserva que se enviarán al servicio:\n"
-        f"- Nombre: {reservation.customer_name}\n"
-        f"- Email: {reservation.email}\n"
+        "Revisa los datos de la reserva que se enviarán al servicio:\n\n"
+        f"- Nombre: {_escape_markdown(reservation.customer_name)}\n"
+        f"- Email: {_escape_markdown(reservation.email)}\n"
         f"- Teléfono: {reservation.phone}\n"
         f"- Fecha: {reservation.date.isoformat()}\n"
         f"- Hora: {reservation.time.isoformat(timespec='minutes')}\n"
-        f"- Comensales: {reservation.guests}\n"
+        f"- Comensales: {reservation.guests}\n\n"
         "Todavía no se ha creado. Responde «sí» para confirmar o «no» para descartarla."
     )
 
@@ -153,8 +173,8 @@ async def get_verified_table_reservation(
 def format_verified_table_reservation(reservation: ReservationInDB) -> str:
     status = "activa" if reservation.status == "confirmed" else "cancelada"
     return (
-        f"Reserva verificada ({status}): {reservation.reservation_id}.\n"
-        f"- Cliente: {reservation.customer_name}\n"
+        f"Reserva verificada ({status}): {reservation.reservation_id}.\n\n"
+        f"- Cliente: {_escape_markdown(reservation.customer_name)}\n"
         f"- Fecha: {reservation.date.isoformat()} a las "
         f"{reservation.time.isoformat(timespec='minutes')}\n"
         f"- Comensales: {reservation.guests}"
@@ -229,9 +249,9 @@ def format_table_reservation_update(
         changes.append(f"- {label}: {previous} → {value}")
 
     return (
-        f"Revisa los cambios para la reserva '{reservation.reservation_id}':\n"
+        f"Revisa los cambios para la reserva '{reservation.reservation_id}':\n\n"
         + "\n".join(changes)
-        + "\nTodavía no se ha modificado. Responde «sí» para confirmar o «no» para descartar."
+        + "\n\nTodavía no se ha modificado. Responde «sí» para confirmar o «no» para descartar."
     )
 
 

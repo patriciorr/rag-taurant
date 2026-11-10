@@ -5,6 +5,8 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 from pymongo import AsyncMongoClient
 
+os.environ["GOOGLE_API_KEY"] = "test-api-key"
+
 from app.core.database import db_instance
 from app.repository.reservation import reservation_repository
 from main import app

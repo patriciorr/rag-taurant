@@ -79,6 +79,8 @@ async def test_create_proposes_normalized_summary_and_persists_only_after_confir
     assert "2030-02-28" in proposed["output"]
     assert "18:30" in proposed["output"]
     assert "- Comensales: 2" in proposed["output"]
+    assert "servicio:\n\n- Nombre:" in proposed["output"]
+    assert "- Comensales: 2\n\nTodavía no se ha creado" in proposed["output"]
     assert "Todavía no se ha creado" in proposed["output"]
     assert persisted == []
 
@@ -94,6 +96,14 @@ async def test_create_proposes_normalized_summary_and_persists_only_after_confir
         "time": "18:30",
         "guests": 2,
     }
+
+
+def test_reservation_summary_escapes_customer_markdown(reservation_clock):
+    reservation = ReservationCreate(
+        **{**valid_arguments(), "customer_name": "Ana **Pérez** <Ana>"}
+    )
+    summary = tools_module.format_reservation_confirmation(reservation)
+    assert r"Nombre: Ana \*\*Pérez\*\* \<Ana\>" in summary
 
 
 @pytest.mark.asyncio
