@@ -1,6 +1,6 @@
 import pytest
 
-from app.rag import tools
+from app.rag import tools, vector_search
 
 
 @pytest.mark.asyncio
@@ -23,7 +23,7 @@ async def test_search_info_uses_shared_database_and_async_embedding(monkeypatch)
         assert query == "el pueblo"
         return [0.1, 0.2]
 
-    monkeypatch.setattr(tools.db_instance, "db", Database())
+    monkeypatch.setattr(vector_search.db_instance, "db", Database())
     monkeypatch.setattr(tools, "get_embedding", embed)
 
     result = await tools.search_info.ainvoke({"query": "el pueblo"})

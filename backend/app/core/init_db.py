@@ -265,6 +265,8 @@ async def validate_embedding_models():
 
 async def init_vector_index():
     """Creates the vector search index on the 'menu' collection."""
+    if settings.VECTOR_SEARCH_MODE != "atlas":
+        return
     collection_names = set(await db_instance.db.list_collection_names())
     target_collections = ["menu"]
     if "knowledge" in collection_names:

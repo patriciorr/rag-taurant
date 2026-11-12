@@ -2,7 +2,6 @@ import re
 
 from langchain_core.tools import tool
 
-from app.core.database import db_instance
 from app.core.exceptions import ReservationValidationException
 from app.models.menu import Allergen
 from app.models.reservation import (
@@ -12,6 +11,7 @@ from app.models.reservation import (
     ReservationUpdate,
 )
 from app.rag.embeddings import get_embedding
+from app.rag.vector_search import vector_search
 from app.service.menu import menu_service
 from app.service.reservation import reservation_service
 from app.service.weather import get_restaurant_weather
@@ -91,21 +91,7 @@ async def search_info(query: str) -> str:
     """Busca información institucional del restaurante y sobre San Juan del Puerto."""
     query_vector = await get_embedding(query)
 
-    pipeline = [
-        {
-            "$vectorSearch": {
-                "index": "vector_index",
-                "path": "embedding",
-                "queryVector": query_vector,
-                "numCandidates": 10,
-                "limit": 3,
-            }
-        },
-        {"$project": {"_id": 0, "embedding": 0, "embedding_model": 0, "embedding_dimensions": 0}},
-    ]
-
-    cursor = await db_instance.db["knowledge"].aggregate(pipeline)
-    results = await cursor.to_list(length=None)
+    results = await vector_search("knowledge", query_vector, 3)
     if not results:
         return "No se encontró información institucional sobre esa consulta."
 
