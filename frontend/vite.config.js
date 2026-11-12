@@ -9,11 +9,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': 'http://localhost:8000',
-      '/assets/menu': {
-        target: 'http://localhost:4566',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/assets\/menu/, '/ragtaurant-assets/menu'),
-      },
+      '/assets/menu': 'http://localhost:8000',
     },
     watch: {
       usePolling: true,

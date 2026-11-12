@@ -12,6 +12,13 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 COPY . .
 
+RUN useradd --system --no-create-home app && chown -R app /app
+USER app
+
 EXPOSE 8000
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# Railway injects PORT and needs HOST=:: because its private network is IPv6.
+ENV HOST=0.0.0.0
+
+CMD ["sh", "-c", "exec uvicorn main:app --host ${HOST} --port ${PORT:-8000}"]
