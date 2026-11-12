@@ -1,4 +1,5 @@
 from app.core.database import db_instance
+from app.rag.vector_search import vector_search
 
 
 class MenuRepository:
@@ -30,28 +31,7 @@ class MenuRepository:
         return result.deleted_count > 0
 
     async def vector_search(self, query_vector: list[float], limit: int = 3) -> list[dict]:
-        pipeline = [
-            {
-                "$vectorSearch": {
-                    "index": "vector_index",
-                    "path": "embedding",
-                    "queryVector": query_vector,
-                    "numCandidates": limit * 10,
-                    "limit": limit,
-                }
-            },
-            {
-                "$project": {
-                    "_id": 0,
-                    "embedding": 0,
-                    "embedding_model": 0,
-                    "embedding_dimensions": 0,
-                    "score": {"$meta": "vectorSearchScore"},
-                }
-            },
-        ]
-        cursor = await self.collection.aggregate(pipeline)
-        return [doc async for doc in cursor]
+        return await vector_search("menu", query_vector, limit)
 
 
 menu_repository = MenuRepository()

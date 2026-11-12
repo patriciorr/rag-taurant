@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.api.assets import router as assets_router
 from app.api.chat import router as chat_router
 from app.api.information import router as information_router
 from app.api.menu import router as menu_router
@@ -44,7 +45,15 @@ async def lifespan(app: FastAPI):
         await close_mongo_connection()
 
 
-app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION, lifespan=lifespan)
+docs_enabled = not settings.is_production
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version=settings.VERSION,
+    lifespan=lifespan,
+    docs_url="/docs" if docs_enabled else None,
+    redoc_url="/redoc" if docs_enabled else None,
+    openapi_url="/openapi.json" if docs_enabled else None,
+)
 
 
 def uses_shared_api_errors(request: Request) -> bool:
@@ -165,21 +174,14 @@ async def internal_error_handler(request: Request, exc: Exception):
     )
 
 
-origins = [
-    "http://localhost",
-    "http://localhost:80",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=settings.cors_origins_list,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
+app.include_router(assets_router)
 app.include_router(menu_router, prefix=settings.API_V1_STR)
 app.include_router(reservation_router, prefix=settings.API_V1_STR)
 app.include_router(chat_router, prefix=settings.API_V1_STR)
@@ -188,7 +190,12 @@ app.include_router(information_router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 def root():
-    return {"message": "RAG-taurant API is running", "docs": "/docs"}
+    return {"message": "RAG-taurant API is running"}
+
+
+@app.get("/health", include_in_schema=False)
+def health():
+    return {"status": "ok"}
 
 
 if __name__ == "__main__":

@@ -131,7 +131,7 @@ cd rag-taurant
 
 #### 2. Configure Google Gemini
 
-Create a Gemini API key in [Google AI Studio](https://aistudio.google.com/) and set `GOOGLE_API_KEY` in a root `.env` file or in your shell. Do not commit the key. Docker Compose passes it to the backend.
+Create a Gemini API key in [Google AI Studio](https://aistudio.google.com/) and set `GOOGLE_API_KEY` in a root `.env` file (copy [.env.example](.env.example)) or in your shell. Do not commit the key. Docker Compose passes it to the backend.
 
 The defaults are `GOOGLE_MODEL=gemini-3.5-flash-lite`, `EMBEDDING_MODEL=gemini-embedding-001`, and `EMBEDDING_DIMENSIONS=768`. Override them in the root `.env` or shell if needed. Requests are billed according to your Google account and API plan.
 
@@ -404,12 +404,31 @@ is not sufficient.
 
 ---
 
+## 🚂 Deployment (Railway)
+
+Work happens on `develop` using Conventional Commits. A pull request into `main` must pass the CI workflow (`backend`, `frontend`, `secret-scan`, `docker-build`); merging deploys to Railway automatically.
+
+Railway runs four services: `frontend` (nginx, the only public one), `backend` (private), the managed MongoDB and a Railway Bucket. The same images run under Docker Compose; behaviour is selected by environment variables:
+
+| Variable | Compose | Railway |
+| --- | --- | --- |
+| `ENVIRONMENT` | `development` | `production` (requires `GOOGLE_API_KEY` and `MENU_ADMIN_TOKEN`, hides `/docs`) |
+| `VECTOR_SEARCH_MODE` | `atlas` | `local` (see [ADR 0002](docs/adr/0002-local-vector-search-fallback-in-production.md)) |
+| `S3_*` | LocalStack | Railway Bucket references |
+| `BACKEND_URL` (frontend) | `http://backend:8000` | `http://backend.railway.internal:8000` |
+| `TRUSTED_PROXY_COUNT` | `1` (nginx) | `2` (Railway edge + nginx) |
+
+Run [scripts/railway-wizard.sh](scripts/railway-wizard.sh) for the one-off setup (variables, image seeding, GitHub branch protection). Secrets live only in Railway and GitHub; never commit them. `docker compose up` also loads `docker-compose.override.yml` (hot reload); use `-f docker-compose.yml` to run the production-like images.
+
+---
+
 ## 🔒 Security & Best Practices
 
 - 🔐 **Environment Configuration:** Sensitive URLs and model choices are parameterized via Pydantic settings.
 - 🛡️ **Git Hygiene:** Local dependencies (`node_modules/`, `.venv/`) and build artifacts are strictly excluded in `.gitignore`.
 - 🌐 **CORS Management:** Managed via FastAPI `CORSMiddleware`; CORS is not an authentication or authorization mechanism.
-- ⚠️ **Development deployment:** The supplied Compose configuration is for local demonstration, not production. MongoDB's host port is bound to loopback but has no authentication; access remains possible to local processes and container-network peers. Menu writes require a shared administrator token and are disabled without one. Before public deployment, use authenticated database access and a suitable identity and authorization system, apply rate limits, configure HTTPS and review data protection and dependency updates.
+- 🚦 **Rate limiting:** `POST /chat` is limited per client IP (10/minute, 100/day) plus a global daily cap, and messages are capped at 500 characters, to protect the Gemini quota. Counters are in memory, so they assume a single backend instance.
+- ⚠️ **Compose deployment:** The supplied Compose configuration is for local demonstration, not production. MongoDB's host port is bound to loopback but has no authentication; access remains possible to local processes and container-network peers. Menu writes require a shared administrator token and are disabled without one. Before public deployment, use authenticated database access and a suitable identity and authorization system, apply rate limits, configure HTTPS and review data protection and dependency updates.
 
 ---
 
