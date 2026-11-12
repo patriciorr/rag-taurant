@@ -2,9 +2,9 @@
 
 The restaurant and menu photographs are genuine stock photographs downloaded
 from Unsplash and optimized as JPEGs (maximum 1800 × 1200 for the hero and
-1000 × 700 for dish cards). They are bundled for this local demonstration,
-uploaded to its LocalStack S3 bucket at startup, and served through the
-same-origin `/assets/menu/` path. Each menu photograph is illustrative; it
+1000 × 700 for dish cards). They are bundled for the demonstration, uploaded
+to LocalStack at local startup or to the Railway bucket for deployment, and
+served by the backend through the same-origin `/assets/menu/` path. Each menu photograph is illustrative; it
 does not represent the actual preparation or guarantee that a dish is free
 from cross-contact.
 
