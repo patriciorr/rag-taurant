@@ -1,457 +1,137 @@
 <div align="center">
 
-# 🍽️ RAGtaurant
+# 🍽️ [RAGtaurant](https://rag-taurant.up.railway.app/)
 
-**A modern, full-stack AI-powered restaurant platform with Retrieval-Augmented Generation (RAG).**
+**A fictional restaurant where AI helps guests explore the menu and its allergens.**
 
-[![Python](https://img.shields.io/badge/Python-3.11%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![React](https://img.shields.io/badge/React-18.x-61DAFB?logo=react&logoColor=white)](https://react.dev/)
-[![Vite](https://img.shields.io/badge/Vite-5.x-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
-[![LangChain](https://img.shields.io/badge/LangChain-0.3%2B-1C3C3C?logo=langchain&logoColor=white)](https://www.langchain.com/)
-[![MongoDB Atlas Local](https://img.shields.io/badge/MongoDB%20Atlas%20Local-Vector_Search-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/products/platform/atlas-vector-search)
-[![Gemini](https://img.shields.io/badge/Google-Gemini-646CFF?logo=google&logoColor=white)](https://ai.google.dev/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
-[![AWS](https://custom-icon-badges.demolab.com/badge/AWS-S3-orange.svg?logo=aws&logoColor=white)](https://aws.amazon.com)
-[![License: All Rights Reserved](https://img.shields.io/badge/License-All%20Rights%20Reserved-lightgrey?logo=data:image/svg%2bxml;base64,PHN2ZyB3aWR0aD0iMTk3cHgiIGhlaWdodD0iMTk3cHgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmVyc2lvbj0iMS4xIj4KCTxjaXJjbGUgY3g9Ijk4IiBjeT0iOTgiIHI9Ijk4IiBmaWxsPSJibGFjayIvPgoJPGNpcmNsZSBjeD0iOTgiIGN5PSI5OCIgcj0iNzgiIGZpbGw9IndoaXRlIi8+Cgk8Y2lyY2xlIGN4PSI5OCIgY3k9Ijk4IiByPSI1NSIgZmlsbD0iYmxhY2siLz4KCTxjaXJjbGUgY3g9Ijk4IiBjeT0iOTgiIHI9IjMwIiBmaWxsPSJ3aGl0ZSIvPgoJPHJlY3QgeD0iMTE1IiB5PSI4NSIgd2lkdGg9IjQ1IiBoZWlnaHQ9IjI1IiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4=)](./LICENSE)
+[![Python](https://img.shields.io/badge/Python-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-blue?logo=react&logoColor=white)](https://react.dev/)
+[![LangChain](https://img.shields.io/badge/LangChain-1C3C3C?logo=langchain&logoColor=white)](https://www.langchain.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-green?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Docker](https://img.shields.io/badge/Docker-darkblue?logo=docker&logoColor=white)](https://www.docker.com/)
+[![AWS](https://custom-icon-badges.demolab.com/badge/S3-orange.svg?logo=aws&logoColor=white)](https://aws.amazon.com)
+[![Railway](https://img.shields.io/badge/Railway-grey?logo=railway)](https://rag-taurant.up.railway.app/)
+[![License: AGPL v3](https://img.shields.io/badge/Open%20Source-darkgrey?logo=opensourceinitiative&logoColor=white)](./LICENSE)
 
-[Key Features](#-key-features) • [Tech Stack](#-tech-stack) • [Project Structure](#-project-structure) • [Getting Started](#-getting-started) • [API & Tools](#-api--tools) • [License](#-license--usage-restrictions)
+
+**[🌐 Open RAGtaurant](https://rag-taurant.up.railway.app/)**
+
+[The story](#-the-story) · [Key features](#-key-features) · [How I built it](#️-how-i-built-it) ·
+[Architecture](#️-architecture) · [Next steps](#-next-steps) · [Getting started](#-getting-started) ·
+[CI/CD](#-cicd) · [License](#-license)
 
 </div>
 
----
+## 📖 The story
 
-## 📖 Overview
+People close to me have serious food allergies, so I have often paid attention to how restaurants describe their
+dishes and allergens. I noticed that this information is not always as clear as it should be.
 
-**RAGtaurant** uses **Retrieval-Augmented Generation (RAG)**, **LangChain tool calling**, and Google Gemini embeddings stored in **MongoDB Atlas Local** vector indexes to answer menu queries, check local weather, and prepare table reservations.
+I built RAGtaurant to explore a modern way to make that information easier to navigate, using AI and
+Retrieval-Augmented Generation (RAG), technologies I learned about through my professional experience.
+The restaurant and its menu are fictional; this project is a portfolio demonstration.
 
-The application features a **React + Material UI** frontend served through **Nginx**, a **FastAPI** backend, and the Gemini API for model inference.
+**Allergy information is illustrative.** The assistant can make mistakes and cannot guarantee the absence of an
+allergen or cross-contact. Always confirm ingredients and preparation with restaurant staff.
 
----
+## ✨ Key features
 
-## ✨ Key Features
+- 🍽️ **Andalusian menu:** Explore fictional dishes and drinks with dietary labels and recorded allergens.
+- 🤖 **RAG assistant:** Ask about the menu, restaurant information or local weather in a conversation grounded in
+  retrieved content.
+- 📅 **Reservations:** Create, look up, update and cancel a reservation; lookup and changes require its code and
+  contact details.
+- ☀️ **Local information:** Discover the fictional restaurant, San Juan del Puerto and the local weather forecast.
+- 🐳 **Local and deployed:** Run the stack with Docker Compose or visit the Railway deployment.
 
-- 🤖 **AI-Powered Gourmet Assistant:** Gemini chatbot with tool calling and conversational memory.
-- 💬 **Conversational answers:** Gemini summarizes retrieved information concisely and may suggest a relevant follow-up. Retrieval errors and missing evidence are reported rather than rewritten; allergy questions receive a cross-contact warning. Model-generated answers can still be inaccurate.
-- 📝 **Readable chat:** Assistant messages support paragraphs, lists, and emphasis. HTML, links, images, and other rich content are not rendered; customer messages stay plain text.
-- 🥗 **Andalusian digital menu:** A responsive Spanish-first restaurant experience with entrantes, principales, postres and bebidas, dietary badges, listed allergens and an allergy safety notice.
-- 📍 **Restaurant information:** A visible introduction to the fictional restaurant, its reservation policy and San Juan del Puerto, also available to the assistant.
-- 📅 **Reservation management:** Create, look up, update and cancel reservations. Protected lookup and changes require the reservation code, email and phone.
-- 🪣 **Local photo storage:** Licensed stock images are seeded into a local-only S3-compatible LocalStack bucket; no AWS account or credentials are needed.
-- 🔍 **Vector Search & RAG:** Semantic search over menu items and restaurant information using **MongoDB Atlas Local** vector search and Gemini embeddings.
-- 🛠️ **Autonomous Agent Tools:**
-  - 📖 `search_menu` and `search_info`: Search menu items and restaurant information.
-  - ☀️ `get_weather_forecast`: Retrieves the Open-Meteo forecast for the restaurant's configured location, covering today and the next 13 days.
-  - 📅 `make_table_reservation`: Handles table reservations with date, time, and guest count validation.
-- ⚡ **Asynchronous REST API:** Lightweight FastAPI backend with CORS middleware and Pydantic schema validations.
-- 🐳 **Full-Stack Docker Orchestration:** Nginx, FastAPI, MongoDB and LocalStack managed via Docker Compose.
+The demo sends chat content and text used for embeddings to Google Gemini. Use fictional contact details when
+trying reservations; see the [development guide](./docs/local-development.md) for privacy and operational notes.
 
----
+## 🛠️ How I built it
 
-## 🛠️ Tech Stack
+I used this project to explore four challenges:
 
-### Frontend & Web Server
+1. 🧠 **From local models to grounded AI:** I first evaluated local models with Ollama, but latency and inconsistent
+   grounding on the available hardware led me to move to hosted Google Gemini models. I combined Gemini, LangChain
+   tools and embeddings with guardrails intended to keep answers grounded and within the app's scope, while
+   recognizing that these safeguards cannot eliminate every risk. Read the
+   [local model research](./docs/research/local-model-selection.md).
+2. 🔗 **Connecting systems:** I integrated Google Gemini for chat and embeddings, Open-Meteo for weather forecasts,
+   and S3-compatible storage for images: LocalStack locally and a Railway bucket in production.
+3. 🍃 **Search across environments:** I used MongoDB Atlas Local vector search for development and an in-process
+   cosine similarity fallback for Railway's MongoDB, where Atlas Vector Search is not available.
+4. 🚀 **From local to live:** I built a React interface and FastAPI backend, orchestrated local services with Docker
+   Compose, added GitHub Actions checks and deployed separate services to Railway.
 
-| Technology            | Badge                                                                                              | Purpose                                   |
-| :-------------------- | :------------------------------------------------------------------------------------------------- | :---------------------------------------- |
-| **React**             | ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=white) | Single Page Application (SPA) client      |
-| **Vite**              | ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)    | Next-generation frontend tooling          |
-| **Material UI (MUI)** | ![MUI](https://img.shields.io/badge/MUI-007FFF?style=for-the-badge&logo=mui&logoColor=white)       | Elegant UI component system and styling   |
-| **Nginx**             | ![Nginx](https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white) | Reverse proxy & static content web server |
+## 🏗️ Architecture
 
-### Backend, AI & Vector Database
+```mermaid
+flowchart LR
+    subgraph Pipeline["🔁 GitHub CI/CD"]
+        direction LR
+        Develop["🌿 develop"] --> PR["🔀 Pull request"]
+        PR --> CI["✅ GitHub Actions<br/>Backend · Frontend · Secrets · Docker"]
+        CI -->|Checks pass and merge| Main["🌳 main"]
+    end
 
-| Technology                 | Badge                                                                                                          | Purpose                                       |
-| :------------------------- | :------------------------------------------------------------------------------------------------------------- | :-------------------------------------------- |
-| **Python**                 | ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)          | Core backend language runtime                 |
-| **FastAPI**                | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)       | Asynchronous RESTful API framework            |
-| **LangChain**              | ![LangChain](https://img.shields.io/badge/LangChain-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white) | AI agent orchestration and tool execution     |
-| **MongoDB Atlas Local**    | ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)       | Local document and vector database            |
-| **Google Gemini**          | ![Google Gemini](https://img.shields.io/badge/Gemini-blue?style=for-the-badge&logo=google&logoColor=white)     | Cloud chat and embedding models               |
-| **Docker**                 | ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)          | Multi-container environment orchestration     |
-| **AWS (LocalStack 4.4.0)** | ![AWS](https://img.shields.io/badge/AWS-orange?style=for-the-badge&logo=iCloud&logoColor=white)                | Local menu-image S3 bucket, seeded at startup |
+    subgraph Railway["🚂 Railway"]
+        direction LR
+        Frontend["🌐 Frontend · public<br/>React + Nginx"]
+        Backend["⚙️ Backend · private<br/>FastAPI + LangChain"]
+        Mongo[("🍃 MongoDB<br/>menu · reservations · embeddings")]
+        Volume[("💾 Persistent volume")]
+        Bucket[("🪣 Private S3-compatible bucket<br/>menu images")]
+        Frontend -->|API and images| Backend
+        Backend --> Mongo
+        Mongo --- Volume
+        Backend -->|Authenticated HTTPS| Bucket
+    end
 
----
+    User["👤 Guest"] -->|HTTPS| Frontend
+    Backend -->|Chat and embeddings| Gemini["✨ Google Gemini"]
+    Backend -->|Weather forecast| Weather["☀️ Open-Meteo"]
+    Main -->|Deploy| Frontend
+    Main -->|Deploy| Backend
 
-## 📁 Project Structure
-
-```text
-rag-taurant/
-├── 📂 backend/                   # FastAPI Backend & RAG Engine
-│   ├── 📂 app/
-│   │   ├── 📂 api/               # HTTP endpoints
-│   │   ├── 📂 core/              # Settings, connection and initial content
-│   │   ├── 📂 models/            # Request and domain data models
-│   │   ├── 📂 repository/        # Database access
-│   │   ├── 📂 service/           # Application logic
-│   │   └── 📂 rag/               # LangChain agent, prompts and tools
-│   ├── 📄 Dockerfile             # Backend container image definition
-│   ├── 📄 main.py                # FastAPI entry point & CORS configuration
-│   └── 📄 requirements.txt       # Python dependencies
-├── 📂 frontend/                  # React + MUI Client Application
-│   ├── 📂 src/
-│   │   ├── 📂 components/        # UI components (ChatWidget, Navbar, MenuCard)
-│   │   ├── 📂 services/          # API client service (Axios)
-│   │   ├── 📂 theme/             # Material UI custom theme palette
-│   │   ├── 📄 App.jsx            # Main view
-│   │   └── 📄 main.jsx           # React app entry point
-│   ├── 📄 Dockerfile             # Multi-stage Docker build for React + Nginx
-│   ├── 📄 nginx.conf             # Nginx reverse proxy routing
-│   ├── 📄 package.json           # Frontend dependencies
-│   └── 📄 vite.config.js         # Vite configuration
-├── 📄 .gitignore                 # Exclusion rules for git version control
-├── 📄 docker-compose.yml         # Full-stack container orchestration
-└── 📄 README.md                  # Project documentation
+    classDef github fill:#e8eaf6,stroke:#3949ab,color:#1a237e
+    classDef service fill:#e0f2f1,stroke:#00897b,color:#004d40
+    classDef data fill:#fff3e0,stroke:#ef6c00,color:#4e2600
+    class Develop,PR,CI,Main github
+    class Frontend,Backend service
+    class Mongo,Volume,Bucket data
 ```
 
----
+In local development, MongoDB Atlas Local and LocalStack replace the Railway database and bucket.
 
-## 🚀 Getting Started
+## 🔭 Next steps
 
-### Prerequisites
+- **Evaluate the assistant:** Build a repeatable evaluation for retrieval quality, allergen questions and response latency.
+- **Automate asset deployment:** Provision and synchronize the Railway bucket as part of a controlled deployment pipeline.
+- **Strengthen reservation security:** Improve access controls and privacy protections for customer data.
 
-Ensure you have installed on your host system:
+## 🚀 Getting started
 
-- **Docker Desktop** / **Docker Engine**: `v24.0+`
-- **Docker Compose**: `v2.20+`
-- _(Optional)_ **Python 3.11** & **Node.js 20+** (if developing locally without Docker)
-
----
-
-### 🐳 Quick Start with Docker Compose (Recommended)
-
-Launch the stack (Nginx, React, FastAPI, MongoDB Atlas Local, and LocalStack) with Docker Compose:
-
-#### 1. Clone the Repository
+Clone the repository, copy `.env.example` to `.env` and add a Google Gemini API key:
 
 ```bash
 git clone https://github.com/patriciorr/rag-taurant.git
 cd rag-taurant
-```
-
-#### 2. Configure Google Gemini
-
-Create a Gemini API key in [Google AI Studio](https://aistudio.google.com/) and set `GOOGLE_API_KEY` in a root `.env` file (copy [.env.example](.env.example)) or in your shell. Do not commit the key. Docker Compose passes it to the backend.
-
-The defaults are `GOOGLE_MODEL=gemini-3.5-flash-lite`, `EMBEDDING_MODEL=gemini-embedding-001`, and `EMBEDDING_DIMENSIONS=768`. Override them in the root `.env` or shell if needed. Requests are billed according to your Google account and API plan.
-
-The API receives chat messages, tool results and text used for embeddings; conversations can contain reservation contact details. Use fictional data for development and review Google's retention, data usage, region and contractual terms before handling real customer data.
-
-Menu changes are disabled by default. To enable them, configure the separate
-administrator credential described in [Menu administration](#menu-administration).
-
-#### 3. Migrate existing vectors, if any
-
-```bash
-docker compose stop backend
-docker compose up -d --wait mongodb
-docker compose run --build --rm --no-deps backend python scripts/reindex_embeddings.py
-```
-
-Run this step when upgrading an existing database or changing embedding model or dimensions. Keep all backend instances stopped throughout migration; queries and writes must not run concurrently. The script generates and validates all replacements before changing indexes and vectors for menu and restaurant knowledge. It retains the documents, but search is unavailable during migration. If migration fails or is interrupted, keep the backend stopped and rerun it to completion. The backend refuses to start when it detects vectors from an unknown or incompatible model.
-
-#### 4. Start and access the application
-
-```bash
+cp .env.example .env
+# Set GOOGLE_API_KEY in .env; never commit the file.
 docker compose up -d --build
 ```
 
-- **Web Application:** `http://localhost`
-- **REST API Documentation (Swagger):** `http://localhost:8000/docs`
+Open [localhost](http://localhost). For prerequisites, manual setup, tests, configuration and deployment details, see
+the [development guide](./docs/local-development.md).
 
----
+## 🧪 CI/CD
 
-### 💻 Manual Local Development Setup
+Changes move from `develop` to `main` through a pull request. GitHub Actions checks the backend, frontend, secrets
+and Docker builds; Railway deploys the connected services from `main`.
 
-If you prefer to run services manually outside Docker:
+## 📜 License
 
-#### 1. Start the local services and configure Gemini
-
-```bash
-docker compose up -d --wait mongodb localstack
-export GOOGLE_API_KEY="your-api-key"
-```
-
-Alternatively, put `GOOGLE_API_KEY` and optional model overrides in `backend/.env`. Reindex an existing database with `python scripts/reindex_embeddings.py` from `backend/` before starting the backend, following the migration precautions above.
-
-#### 2. Backend Setup
-
-```bash
-cd backend
-python3.11 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements-dev.txt
-python main.py
-```
-
-Select `backend/.venv/bin/python` as the Python interpreter in VS Code. This
-environment matches the backend container's Python 3.11 version and includes
-the dependencies needed to run tests.
-
-#### 3. Frontend Setup
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-The Vite development server proxies `/api` to `http://localhost:8000` and
-`/assets` to the local S3 endpoint at `http://localhost:4566`. Start
-LocalStack alongside MongoDB before opening the page to make the locally
-stored photos available:
-
-```bash
-docker compose up -d --wait mongodb localstack
-```
-
-LocalStack runs only for local development/demo and is pinned to
-`localstack/localstack:4.4.0`. Its startup hook idempotently creates the
-`ragtaurant-assets` bucket, applies a local public-read policy, and syncs the
-bundled stock photos. Both Vite and Nginx expose them through the browser-safe
-same-origin `/assets/menu/...` path; the browser never needs a Docker hostname
-or AWS credentials. The LocalStack endpoint is published on
-`127.0.0.1:4566`, not on external interfaces.
-
-For the full application, `docker compose up --wait` also waits for the
-LocalStack image seed to finish before starting the frontend. The AI assistant
-is still available from the floating chat button; browsing the menu itself
-does not include search or diet/allergen filters.
-
-The curated catalog seed adds or updates only its own stable dish IDs and
-rebuilds embeddings for changed seed records. Other existing menu documents
-are retained.
-
-### Frontend Checks
-
-```bash
-cd frontend
-npm ci
-npm test
-npm run lint
-npm run build
-```
-
-Component and API contract tests use Vitest, React Testing Library and a DOM
-test environment. The complete suite covers menu categories and dietary
-labels, allergen guidance, reservation creation/lookup/update/cancellation,
-API contact headers, and accessible error messages.
-
-### Reservation policy
-
-Reservations accept 1–20 guests, on the hour or half-hour between 12:00 and
-23:00, on today or any of the next 13 days in the restaurant's Europe/Madrid
-timezone. The UI enforces matching date/time/party-size inputs. A returned
-reservation code is needed along with the original email and phone for lookup,
-updates and cancellation. The displayed menu allergen information and dish
-photos are illustrative; customers with allergies must always confirm
-ingredients and cross-contact with restaurant staff.
-
-See [photo source and licensing details](./docs/image-attribution.md) for the
-stock-image asset list.
-
-### Demonstration content
-
-The restaurant, menu, drink prices, ingredients, allergen and dietary labels
-are illustrative and require review before use in a real restaurant. In
-particular, the gluten-free beer is a fictional example, not verification of
-any actual product or cross-contact. The wines suggest pairings with fish and
-meat; their listed allergen is sulphites. The seven drinks use numeric-string
-IDs consistent with the existing menu API.
-
-The curated information in `backend/app/core/restaurant_info.py` is shared by
-the public information endpoint and the chatbot's indexed knowledge. Startup
-upserts the curated entries and refreshes their embeddings when the text
-changes, without deleting separately added knowledge. The town description is
-based on the [municipal tourism website](https://sanjuandelpuerto.es/turismo-bienvenida/);
-the restaurant itself is fictional. Review the content before publishing it.
-
----
-
-## 🧪 Running the tests
-
-Run everything from the repository root. The backend integration tests need the
-local MongoDB container; the tests stub Gemini and do not require a Google key.
-Create the Python 3.11 backend environment as described in
-[Backend Setup](#2-backend-setup) first.
-
-```bash
-# Frontend (Vitest + React Testing Library)
-cd frontend && npm ci && npm test && npm run lint && cd ..
-
-# Backend (pytest, unit + MongoDB integration)
-backend/.venv/bin/python -m pip install -r backend/requirements-dev.txt
-docker compose up --wait mongodb
-cd backend && .venv/bin/python -m pytest -c pytest.ini
-```
-
-See [Frontend Checks](#frontend-checks) and [Backend Tests](#backend-tests) for
-what each suite covers and how to point the integration tests at another
-MongoDB instance.
-
----
-
-## 📡 API & Tools
-
-### REST API Endpoints
-
-| Method   | Endpoint                        | Description                                     |
-| :------- | :------------------------------ | :---------------------------------------------- |
-| `GET`    | `/api/v1/menu/`                 | Fetches the restaurant menu                     |
-| `POST`   | `/api/v1/menu/`                 | Creates a menu item                             |
-| `GET`    | `/api/v1/menu/{dish_id}`        | Fetches a menu item                             |
-| `PUT`    | `/api/v1/menu/{dish_id}`        | Replaces a menu item                            |
-| `PATCH`  | `/api/v1/menu/{dish_id}`        | Partially updates a menu item                   |
-| `DELETE` | `/api/v1/menu/{dish_id}`        | Deletes a menu item                             |
-| `GET`    | `/api/v1/menu/search?query=...` | Searches menu items                             |
-| `GET`    | `/api/v1/information/`          | Returns curated public restaurant information   |
-| `POST`   | `/api/v1/reservations/`         | Creates a reservation                           |
-| `GET`    | `/api/v1/reservations/{id}`     | Reads a reservation with contact verification   |
-| `PUT`    | `/api/v1/reservations/{id}`     | Replaces reservation date, time, and party size |
-| `PATCH`  | `/api/v1/reservations/{id}`     | Partially updates date, time, or party size     |
-| `DELETE` | `/api/v1/reservations/{id}`     | Cancels a reservation                           |
-| `POST`   | `/api/v1/chat/`                 | Sends a message to the RAG Chatbot agent        |
-
-Reservation detail, update, and cancellation requests require `X-Reservation-Email` and `X-Reservation-Phone` headers. The reservation collection intentionally has no public list endpoint.
-
-### Menu administration
-
-`MENU_ADMIN_TOKEN` is a private, shared credential for changing the menu
-through the API. It is not a Google API key, a customer login, or a token
-needed to browse the site. Menu reads remain public, but `POST`, `PUT`, `PATCH`
-and `DELETE` on `/api/v1/menu/` require this credential. If it is not
-configured, those operations return **503**; if it is configured but the
-credential is missing or incorrect, they return **401**.
-
-To enable menu changes in the local Docker setup:
-
-1. Generate a long random token, for example with `openssl rand -hex 32`.
-   Treat the output like a password.
-2. Add `MENU_ADMIN_TOKEN=<generated-token>` to the root `.env`, alongside
-   `GOOGLE_API_KEY`. Replace the placeholder with your generated value; do not
-   include the angle brackets. Do not commit the file or share the token.
-3. Apply the new configuration with `docker compose up -d --no-deps backend`
-   from the project root. For manual backend development, set the value in
-   `backend/.env` or the backend environment and restart the process instead.
-4. At `http://localhost:8000/docs`, select **Authorize**, enter the token
-   (without the `Bearer` prefix) and authorize. Menu write requests from the
-   API documentation will then send it in the `Authorization` header. The
-   frontend and customers do not need the token.
-
-Changing the token in `.env` has no effect until the backend is restarted or
-recreated. If a token is exposed, replace it with a new random value and
-recreate the backend; the old token will stop working. This shared token is a
-basic control for the demo, not individual accounts, roles or a substitute
-for HTTPS and a production-grade authorization system.
-
-### Backend Tests
-
-Using the Python 3.11 environment from [Backend Setup](#2-backend-setup),
-install the development test dependencies and start only the local MongoDB service:
-
-```bash
-backend/.venv/bin/python -m pip install -r backend/requirements-dev.txt
-docker compose up --wait mongodb
-cd backend
-.venv/bin/python -m pytest -c pytest.ini
-```
-
-The `mongodb` service runs MongoDB Atlas Local from the official `mongodb/mongodb-atlas-local` image and publishes port `27017` for tests run on the host. `--wait` does not return until its health check succeeds. The full test command includes both unit and MongoDB integration tests; Gemini is stubbed.
-
-The integration tests use a unique `rag_taurant_test_*` database per test and drop it during cleanup. To use another MongoDB instance, set `TEST_MONGODB_URI` before running the tests and ensure it points to a disposable test deployment; test databases are deleted automatically.
-
-### Historical Model Research
-
-The [historical model-selection report](./docs/research/local-model-selection.md) records an earlier evaluation. It does not evaluate the current Google integration and is not an operating guide.
-
-### Candidate Gemini model evaluation
-
-The optional isolated evaluator tests only `gemini-embedding-2` and
-`gemini-3.8-flash`, without changing the configured models, database, or vector
-indexes:
-
-```bash
-docker compose run --rm --no-deps backend python scripts/evaluate_gemini_models.py
-```
-
-The command makes billable API requests: two embedding requests for the
-fictional seed menu and three questions, followed by up to six chat requests.
-It uses 1536-dimensional embeddings, retrieval instructions in the text, and
-the `medium` thinking level. It prints the three nearest menu IDs for each
-question and, when the chat service succeeds, the tool-calling and response
-results as JSON. Provider errors cause a nonzero exit; retrieval results
-already calculated are printed separately on stderr. This small smoke test
-does not establish general answer quality, production readiness, or superiority
-over the configured models. Check your account's pricing and quota before
-running it.
-
-The current LangChain embedding methods send `task_type`, which Gemini
-Embedding 2 does not support. The evaluator uses the integration's Google
-client with task instructions in the input instead. Using this model in the
-application would additionally require adapting every indexing and retrieval
-path and re-embedding existing data; changing the environment variable alone
-is not sufficient.
-
-### Agent Autonomous Tools
-
-1. **`search_menu(query, vegan_only, vegetarian_only, exclude_allergens, include_allergens, available_only)`**: Searches the menu using stored vector matches and structured dietary/allergen filters. `exclude_allergens` excludes dishes with any listed allergen; `include_allergens` matches dishes with at least one listed allergen. These describe recorded allergens, not a guarantee against cross-contact.
-2. **`search_info(query)`**: Queries the restaurant knowledge collection through MongoDB vector search.
-3. **`get_weather_forecast(date: str | None)`**: Retrieves the 14-day Open-Meteo forecast or a specific available date; a verified active reservation date can provide the context.
-4. **`make_table_reservation(customer_name, email, phone, date, time, guests)`**: Prepares and summarizes a new reservation without creating it until explicit confirmation.
-5. **`get_table_reservation(reservation_id, email, phone)`**: Verifies and reads an existing reservation.
-6. **`edit_table_reservation(reservation_id, email, phone, date, time, guests)`**: Prepares a reservation change without mutating it before confirmation.
-7. **`delete_table_reservation(reservation_id, email, phone)`**: Prepares a cancellation without applying it before confirmation.
-
----
-
-## 🚂 Deployment (Railway)
-
-Work happens on `develop` using Conventional Commits. A pull request into `main` must pass the CI workflow (`backend`, `frontend`, `secret-scan`, `docker-build`); merging deploys to Railway automatically.
-
-Railway runs four services: `frontend` (nginx, the only public one), `backend` (private), the managed MongoDB and a Railway Bucket. The same images run under Docker Compose; behaviour is selected by environment variables:
-
-| Variable | Compose | Railway |
-| --- | --- | --- |
-| `ENVIRONMENT` | `development` | `production` (requires `GOOGLE_API_KEY` and `MENU_ADMIN_TOKEN`, hides `/docs`) |
-| `VECTOR_SEARCH_MODE` | `atlas` | `local` (see [ADR 0002](docs/adr/0002-local-vector-search-fallback-in-production.md)) |
-| `S3_*` | LocalStack | Railway Bucket references |
-| `BACKEND_URL` (frontend) | `http://backend:8000` | `http://backend.railway.internal:8000` |
-| `TRUSTED_PROXY_COUNT` | `1` (nginx) | `2` (Railway edge + nginx) |
-
-Run [scripts/railway-wizard.sh](scripts/railway-wizard.sh) for the one-off setup (variables, image seeding, GitHub branch protection). Secrets live only in Railway and GitHub; never commit them. `docker compose up` also loads `docker-compose.override.yml` (hot reload); use `-f docker-compose.yml` to run the production-like images.
-
----
-
-## 🔒 Security & Best Practices
-
-- 🔐 **Environment Configuration:** Sensitive URLs and model choices are parameterized via Pydantic settings.
-- 🛡️ **Git Hygiene:** Local dependencies (`node_modules/`, `.venv/`) and build artifacts are strictly excluded in `.gitignore`.
-- 🌐 **CORS Management:** Managed via FastAPI `CORSMiddleware`; CORS is not an authentication or authorization mechanism.
-- 🚦 **Rate limiting:** `POST /chat` is limited per client IP (10/minute, 100/day) plus a global daily cap, and messages are capped at 500 characters, to protect the Gemini quota. Counters are in memory, so they assume a single backend instance.
-- ⚠️ **Compose deployment:** The supplied Compose configuration is for local demonstration, not production. MongoDB's host port is bound to loopback but has no authentication; access remains possible to local processes and container-network peers. Menu writes require a shared administrator token and are disabled without one. Before public deployment, use authenticated database access and a suitable identity and authorization system, apply rate limits, configure HTTPS and review data protection and dependency updates.
-
----
-
-## 📜 License & Usage Restrictions
-
-<div align="center">
-
-Copyright (c) 2026 Patricio Rodríguez Ramírez. All rights reserved.
-
-</div>
-
-**1. PROPRIETARY RIGHTS & RESTRICTIONS**
-This source code and its associated files are the exclusive property of Patricio Rodríguez Ramírez. Unauthorized copying, modification, distribution, sublicensing, or commercial/non-commercial use of this software, via any medium, is strictly prohibited without explicit written permission from the copyright owner, except as permitted under the GitHub Terms of Service.
-
-**2. CONTRIBUTIONS AND PULL REQUESTS**
-By submitting any contribution to this repository (including but not limited to pull requests, patches, bug fixes, suggestions, or code modifications), you hereby grant Patricio Rodríguez Ramírez a perpetual, irrevocable, worldwide, non-exclusive, royalty-free, fully paid-up, transferable, and sublicensable license to use, reproduce, modify, adapt, publish, perform, display, distribute, sell, offer for sale, import, and commercialize such contributions under any terms or licenses, present or future.
-You represent and warrant that you are the sole author of the contribution or possess all necessary legal rights and authority to grant the rights and licenses specified herein.
-
-**3. DISCLAIMER OF WARRANTY**
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
----
-
-<div align="center">
-  <sub>Built with ❤️ by Patricio Rodríguez.</sub>
-</div>
+Copyright © 2026 Patricio Rodríguez Ramírez. Licensed under the
+[GNU Affero General Public License v3.0 only](./LICENSE). The menu photographs have separate
+[source and licensing information](./docs/image-attribution.md).
