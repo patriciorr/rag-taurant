@@ -1,16 +1,20 @@
-# app/service/menu.py
 import uuid
-from typing import List, Dict, Any
+from typing import Any
+
 from pymongo.errors import PyMongoError
-from app.models.menu import MenuItem, MenuItemCreate, MenuItemReplace, MenuItemUpdate
-from app.repository.menu import menu_repository
-from app.rag.embeddings import get_embedding
-from app.rag.embeddings import get_embeddings_batch
+
 from app.core.config import settings
-from app.core.exceptions import MenuItemNotFoundException, EmbeddingServiceException, DatabaseException
+from app.core.exceptions import (
+    DatabaseException,
+    EmbeddingServiceException,
+    MenuItemNotFoundException,
+)
+from app.models.menu import MenuItem, MenuItemCreate, MenuItemReplace, MenuItemUpdate
+from app.rag.embeddings import get_embedding, get_embeddings_batch
+from app.repository.menu import menu_repository
 
 
-def menu_embedding_text(item: Dict[str, Any]) -> str:
+def menu_embedding_text(item: dict[str, Any]) -> str:
     """Format structured menu fields consistently for vector indexing and queries."""
     parts = []
 
@@ -39,10 +43,10 @@ def menu_embedding_text(item: Dict[str, Any]) -> str:
 
 
 class MenuService:
-    def _get_text_for_embedding(self, item: Dict[str, Any]) -> str:
+    def _get_text_for_embedding(self, item: dict[str, Any]) -> str:
         return menu_embedding_text(item)
 
-    async def list_menu(self) -> List[MenuItem]:
+    async def list_menu(self) -> list[MenuItem]:
         try:
             items = await menu_repository.list_menu()
             return [MenuItem(**item) for item in items]
@@ -138,7 +142,7 @@ class MenuService:
         if not success:
             raise MenuItemNotFoundException(dish_id)
 
-    async def search_similar_dishes(self, query: str, limit: int = 3) -> List[dict]:
+    async def search_similar_dishes(self, query: str, limit: int = 3) -> list[dict]:
         try:
             query_vector = await get_embedding(query)
         except Exception as e:
@@ -148,5 +152,6 @@ class MenuService:
             return await menu_repository.vector_search(query_vector, limit)
         except PyMongoError as e:
             raise DatabaseException(f"Error executing vector search: {str(e)}")
+
 
 menu_service = MenuService()

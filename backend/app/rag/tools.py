@@ -1,9 +1,9 @@
-# backend/app/rag/tools.py
-from typing import Optional
 import re
+
 from langchain_core.tools import tool
+
 from app.core.database import db_instance
-from app.rag.embeddings import get_embedding
+from app.core.exceptions import ReservationValidationException
 from app.models.menu import Allergen
 from app.models.reservation import (
     ReservationContact,
@@ -11,19 +11,20 @@ from app.models.reservation import (
     ReservationInDB,
     ReservationUpdate,
 )
+from app.rag.embeddings import get_embedding
 from app.service.menu import menu_service
 from app.service.reservation import reservation_service
 from app.service.weather import get_restaurant_weather
-from app.core.exceptions import ReservationValidationException
+
 
 @tool
 async def search_menu(
     query: str,
     vegan_only: bool = False,
     vegetarian_only: bool = False,
-    exclude_allergens: Optional[list[str]] = None,
+    exclude_allergens: list[str] | None = None,
     available_only: bool = True,
-    include_allergens: Optional[list[str]] = None,
+    include_allergens: list[str] | None = None,
 ) -> str:
     """Busca platos por sus atributos registrados.
 
@@ -39,16 +40,16 @@ async def search_menu(
     included = set(include_allergens or [])
     unknown_allergens = (excluded | included) - valid_allergens
     if unknown_allergens:
-        return "No pude aplicar el filtro porque contiene alérgenos no reconocidos: " + ", ".join(sorted(unknown_allergens))
+        return "No pude aplicar el filtro porque contiene alérgenos no reconocidos: " + ", ".join(
+            sorted(unknown_allergens)
+        )
     if excluded & included:
         return "No pude aplicar el filtro porque pide incluir y excluir el mismo alérgeno."
 
     similar_items = await menu_service.search_similar_dishes(query, limit=len(items))
     items_by_id = {item.id: item for item in items}
     matches = [
-        items_by_id[result["id"]]
-        for result in similar_items
-        if result.get("id") in items_by_id
+        items_by_id[result["id"]] for result in similar_items if result.get("id") in items_by_id
     ]
     matched_ids = {item.id for item in matches}
     if included or excluded:
@@ -64,7 +65,9 @@ async def search_menu(
         and (not included or included.intersection(allergen.value for allergen in item.allergens))
     ]
     if not matches:
-        return "No encontré platos disponibles que coincidan con la consulta y los filtros indicados."
+        return (
+            "No encontré platos disponibles que coincidan con la consulta y los filtros indicados."
+        )
 
     response = ["Coincidencias recuperadas de la carta:"]
     for item in matches:
@@ -82,11 +85,12 @@ async def search_menu(
     )
     return "\n".join(response)
 
+
 @tool
 async def search_info(query: str) -> str:
     """Busca información institucional del restaurante y sobre San Juan del Puerto."""
     query_vector = await get_embedding(query)
-    
+
     pipeline = [
         {
             "$vectorSearch": {
@@ -94,21 +98,22 @@ async def search_info(query: str) -> str:
                 "path": "embedding",
                 "queryVector": query_vector,
                 "numCandidates": 10,
-                "limit": 3
+                "limit": 3,
             }
         },
-        {"$project": {"_id": 0, "embedding": 0, "embedding_model": 0, "embedding_dimensions": 0}}
+        {"$project": {"_id": 0, "embedding": 0, "embedding_model": 0, "embedding_dimensions": 0}},
     ]
-    
+
     cursor = await db_instance.db["knowledge"].aggregate(pipeline)
     results = await cursor.to_list(length=None)
     if not results:
         return "No se encontró información institucional sobre esa consulta."
-    
+
     response = "Información del restaurante:\n"
     for info in results:
         response += f"- {info.get('content')}\n"
     return response
+
 
 def _escape_markdown(value: str) -> str:
     escaped = re.sub(r"([\\`*_\[\]<>])", r"\\\1", value)
@@ -154,6 +159,7 @@ async def make_table_reservation(
     )
     return format_reservation_confirmation(reservation)
 
+
 async def get_verified_table_reservation(
     reservation_id: str,
     email: str,
@@ -182,7 +188,7 @@ async def get_table_reservation(reservation_id: str, email: str, phone: str) -> 
 
 
 @tool
-def get_weather_forecast(date: Optional[str] = None) -> str:
+def get_weather_forecast(date: str | None = None) -> str:
     """Consulta la previsión meteorológica del restaurante. Indica date en formato YYYY-MM-DD para una fecha concreta; omítela para consultar el horizonte disponible."""
     return get_restaurant_weather(date)
 
@@ -191,9 +197,9 @@ async def prepare_table_reservation_update(
     reservation_id: str,
     email: str,
     phone: str,
-    date: Optional[str] = None,
-    time: Optional[str] = None,
-    guests: Optional[int] = None,
+    date: str | None = None,
+    time: str | None = None,
+    guests: int | None = None,
 ) -> tuple[ReservationInDB, ReservationUpdate]:
     contact = ReservationContact(email=email, phone=phone)
     reservation = await reservation_service.get_reservation(reservation_id, contact)
@@ -253,9 +259,9 @@ async def edit_table_reservation(
     reservation_id: str,
     email: str,
     phone: str,
-    date: Optional[str] = None,
-    time: Optional[str] = None,
-    guests: Optional[int] = None,
+    date: str | None = None,
+    time: str | None = None,
+    guests: int | None = None,
 ) -> str:
     """Prepara cambios de fecha, hora o comensales tras verificar el código, email y teléfono; no modifica la reserva."""
     reservation, update = await prepare_table_reservation_update(
@@ -267,6 +273,7 @@ async def edit_table_reservation(
         guests=guests,
     )
     return format_table_reservation_update(reservation, update)
+
 
 @tool
 async def delete_table_reservation(reservation_id: str, email: str, phone: str) -> str:
@@ -283,6 +290,7 @@ async def delete_table_reservation(reservation_id: str, email: str, phone: str) 
         "una confirmación afirmativa explícita del cliente."
     )
 
+
 # Exportar conjunto de herramientas para el agente
 bot_tools = [
     search_menu,
@@ -291,5 +299,5 @@ bot_tools = [
     make_table_reservation,
     get_table_reservation,
     edit_table_reservation,
-    delete_table_reservation
+    delete_table_reservation,
 ]

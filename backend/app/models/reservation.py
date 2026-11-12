@@ -1,10 +1,18 @@
-# app/models/reservation.py
-from datetime import date as Date, datetime, time as Time, timedelta
-from typing import Optional
+from datetime import date as Date
+from datetime import datetime, timedelta
+from datetime import time as Time
 from zoneinfo import ZoneInfo
 
 import phonenumbers
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_serializer, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    field_serializer,
+    field_validator,
+    model_validator,
+)
 
 
 def normalize_phone_number(value: str) -> str:
@@ -38,7 +46,7 @@ def validate_reservation_schedule(reservation_date: Date, reservation_time: Time
         raise ValueError("Reservations cannot be made for a time that has passed.")
 
 
-def validate_service_hours(value: Optional[Time]) -> Optional[Time]:
+def validate_service_hours(value: Time | None) -> Time | None:
     if value is None:
         return value
     if value.tzinfo is not None:
@@ -70,7 +78,9 @@ class ReservationContact(ReservationModel):
 
 
 class ReservationData(ReservationModel):
-    customer_name: str = Field(..., min_length=2, max_length=120, json_schema_extra={"example": "John Doe"})
+    customer_name: str = Field(
+        ..., min_length=2, max_length=120, json_schema_extra={"example": "John Doe"}
+    )
     email: EmailStr = Field(..., json_schema_extra={"example": "john.doe@example.com"})
     phone: str = Field(..., json_schema_extra={"example": "+34612345678"})
     date: Date = Field(..., json_schema_extra={"example": "2024-06-15"})
@@ -125,21 +135,21 @@ class ReservationReplace(ReservationModel):
 
 
 class ReservationUpdate(ReservationModel):
-    date: Optional[Date] = None
-    time: Optional[Time] = None
-    guests: Optional[int] = Field(None, gt=0, le=20, strict=True)
+    date: Date | None = None
+    time: Time | None = None
+    guests: int | None = Field(None, gt=0, le=20, strict=True)
 
     @field_serializer("date", when_used="json")
-    def serialize_date(self, value: Optional[Date]) -> Optional[str]:
+    def serialize_date(self, value: Date | None) -> str | None:
         return value.isoformat() if value is not None else None
 
     @field_serializer("time", when_used="json")
-    def serialize_time(self, value: Optional[Time]) -> Optional[str]:
+    def serialize_time(self, value: Time | None) -> str | None:
         return value.isoformat(timespec="minutes") if value is not None else None
 
     @field_validator("time")
     @classmethod
-    def validate_time(cls, value: Optional[Time]) -> Optional[Time]:
+    def validate_time(cls, value: Time | None) -> Time | None:
         return validate_service_hours(value)
 
     @model_validator(mode="after")

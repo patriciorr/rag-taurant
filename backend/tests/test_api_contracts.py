@@ -16,7 +16,8 @@ from main import app
 def client(monkeypatch):
     monkeypatch.setattr(settings, "MENU_ADMIN_TOKEN", "test-menu-token")
     return TestClient(
-        app, raise_server_exceptions=False,
+        app,
+        raise_server_exceptions=False,
         headers={"Authorization": "Bearer test-menu-token"},
     )
 
@@ -32,7 +33,9 @@ def client(monkeypatch):
 )
 def test_menu_mutations_reject_missing_and_invalid_credentials(client, method, path, payload):
     for authorization in ("", "Bearer invalid", "Basic dGVzdA=="):
-        response = client.request(method, path, headers={"Authorization": authorization}, json=payload)
+        response = client.request(
+            method, path, headers={"Authorization": authorization}, json=payload
+        )
         assert response.status_code == 401
         assert response.json()["code"] == "UNAUTHORIZED"
         assert response.headers["www-authenticate"] == "Bearer"
@@ -257,7 +260,9 @@ def test_reservation_delete_contract_cancels_using_the_contact_headers(client, m
         assert contact.email == "ana@example.com"
         assert contact.phone == "+34612345678"
 
-    monkeypatch.setattr(reservation_service.reservation_service, "cancel_reservation", cancel_reservation)
+    monkeypatch.setattr(
+        reservation_service.reservation_service, "cancel_reservation", cancel_reservation
+    )
 
     response = client.delete(
         "/api/v1/reservations/RES-1",

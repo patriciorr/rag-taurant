@@ -1,6 +1,5 @@
-import react from "@vitejs/plugin-react";
-import { defineConfig } from "vitest/config";
-
+import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vitest/config';
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -9,11 +8,11 @@ export default defineConfig({
     host: true,
     port: 5173,
     proxy: {
-      "/api": "http://localhost:8000",
-      "/assets/menu": {
-        target: "http://localhost:4566",
+      '/api': 'http://localhost:8000',
+      '/assets/menu': {
+        target: 'http://localhost:4566',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/assets\/menu/, "/ragtaurant-assets/menu"),
+        rewrite: (path) => path.replace(/^\/assets\/menu/, '/ragtaurant-assets/menu'),
       },
     },
     watch: {
@@ -21,8 +20,8 @@ export default defineConfig({
     },
   },
   test: {
-    environment: "jsdom",
-    setupFiles: "./src/test/setup.js",
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.js',
     css: false,
   },
 });

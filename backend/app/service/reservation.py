@@ -1,14 +1,26 @@
-# app/service/reservation.py
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
 from pymongo.errors import DuplicateKeyError, PyMongoError
 
-from app.models.reservation import ReservationContact, ReservationCreate, ReservationReplace, ReservationUpdate, ReservationInDB, validate_reservation_schedule
+from app.core.exceptions import (
+    DatabaseException,
+    ReservationConflictException,
+    ReservationNotFoundException,
+    ReservationValidationException,
+)
+from app.models.reservation import (
+    ReservationContact,
+    ReservationCreate,
+    ReservationInDB,
+    ReservationReplace,
+    ReservationUpdate,
+    validate_reservation_schedule,
+)
 from app.repository.reservation import reservation_repository
-from app.core.exceptions import DatabaseException, ReservationConflictException, ReservationNotFoundException, ReservationValidationException
+
 
 class ReservationService:
-
     async def create_reservation(self, reservation_in: ReservationCreate) -> ReservationInDB:
         reservation = ReservationInDB(
             reservation_id="RES-" + str(uuid.uuid4())[:8],
@@ -19,7 +31,7 @@ class ReservationService:
             time=reservation_in.time,
             guests=reservation_in.guests,
             status="confirmed",
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(UTC),
         )
         try:
             res_dict = reservation.model_dump()
@@ -32,7 +44,9 @@ class ReservationService:
         except PyMongoError as e:
             raise DatabaseException(f"Error creating reservation: {str(e)}")
 
-    async def get_reservation(self, reservation_id: str, contact: ReservationContact) -> ReservationInDB:
+    async def get_reservation(
+        self, reservation_id: str, contact: ReservationContact
+    ) -> ReservationInDB:
         _, reservation = await self._get_authorized_reservation(reservation_id, contact)
         return reservation
 
@@ -117,5 +131,6 @@ class ReservationService:
 
         if not success:
             raise ReservationNotFoundException(reservation_id)
+
 
 reservation_service = ReservationService()

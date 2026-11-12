@@ -120,8 +120,7 @@ def get_restaurant_weather(
     forecast_lines = []
     for index in indices:
         details = [
-            f"{label}: {values[field][index]:g}{unit}"
-            for field, label, unit in FIELD_LABELS
+            f"{label}: {values[field][index]:g}{unit}" for field, label, unit in FIELD_LABELS
         ]
         forecast_lines.append(f"{days[index]}: " + "; ".join(details) + ".")
     return "Previsión meteorológica para la ubicación del restaurante:\n" + "\n".join(

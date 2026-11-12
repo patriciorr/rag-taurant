@@ -1,5 +1,5 @@
-# app/rag/embeddings.py
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
 from app.core.config import settings
 
 embeddings_service = GoogleGenerativeAIEmbeddings(
@@ -21,6 +21,7 @@ def _validate_vector(vector: list[float]) -> list[float]:
 async def get_embedding(text: str) -> list[float]:
     """Obtiene el embedding de un único texto de forma asíncrona."""
     return _validate_vector(await embeddings_service.aembed_query(text))
+
 
 async def get_embeddings_batch(texts: list[str]) -> list[list[float]]:
     """Obtiene embeddings para una lista de textos en lote de forma asíncrona."""

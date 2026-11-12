@@ -20,18 +20,12 @@ class FakeCollection:
 
     def find(self, query):
         requested_ids = set(query["id"]["$in"])
-        return FakeCursor(
-            [item for item in self.documents if item.get("id") in requested_ids]
-        )
+        return FakeCursor([item for item in self.documents if item.get("id") in requested_ids])
 
     async def update_one(self, query, update, upsert):
         self.updates.append((query, update, upsert))
         item = next(
-            (
-                item
-                for item in self.documents
-                if item.get("id") == query["id"]
-            ),
+            (item for item in self.documents if item.get("id") == query["id"]),
             None,
         )
         if item is None:
@@ -91,9 +85,7 @@ def test_curated_menu_images_and_allergens_match_public_api_contract():
     from app.models.menu import Allergen, MenuItem
 
     seeded_items = [MenuItem(**item) for item in init_db.INITIAL_MENU]
-    covered_allergens = {
-        allergen.value for item in seeded_items for allergen in item.allergens
-    }
+    covered_allergens = {allergen.value for item in seeded_items for allergen in item.allergens}
 
     assert {allergen.value for allergen in Allergen} <= covered_allergens
     assert all(item.image_url for item in seeded_items)

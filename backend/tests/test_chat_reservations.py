@@ -99,9 +99,7 @@ async def test_create_proposes_normalized_summary_and_persists_only_after_confir
 
 
 def test_reservation_summary_escapes_customer_markdown(reservation_clock):
-    reservation = ReservationCreate(
-        **{**valid_arguments(), "customer_name": "Ana **Pérez** <Ana>"}
-    )
+    reservation = ReservationCreate(**{**valid_arguments(), "customer_name": "Ana **Pérez** <Ana>"})
     summary = tools_module.format_reservation_confirmation(reservation)
     assert r"Nombre: Ana \*\*Pérez\*\* \<Ana\>" in summary
 

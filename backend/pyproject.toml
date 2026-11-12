@@ -1,0 +1,17 @@
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E",   # Errores de estilo pycodestyle
+    "F",   # Errores lógicos de Pyflakes (variables sin usar, etc.)
+    "I",   # Orden de imports (isort)
+    "B",   # Bugbear (detecta posibles bugs y malas prácticas)
+    "UP",  # Pyupgrade (moderniza sintaxis antigua automáticamente)
+    "SIM", # Simplify (sugiere formas más simples de escribir condiciones)
+]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double" # Puedes cambiarlo a "single" si prefieres comillas simples

@@ -1,15 +1,16 @@
-# app/models/menu.py
-from pydantic import BaseModel, ConfigDict, Field, model_validator
-from typing import List, Optional
-from enum import Enum
+from enum import StrEnum
 
-class Category(str, Enum):
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+
+class Category(StrEnum):
     ENTRANTE = "entrante"
     PRINCIPAL = "principal"
     POSTRE = "postre"
     BEBIDA = "bebida"
 
-class Allergen(str, Enum):
+
+class Allergen(StrEnum):
     GLUTEN = "gluten"
     CRUSTACEOS = "crustáceos"
     HUEVO = "huevo"
@@ -25,52 +26,71 @@ class Allergen(str, Enum):
     ALTRAMUZ = "altramuces"
     MOLUSCOS = "moluscos"
 
+
 class MenuModel(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
+
 class MenuItemBase(MenuModel):
-    name: str = Field(..., min_length=1, max_length=120, json_schema_extra={"example": "Paella Marinera Tradicional"})
-    description: str = Field(..., min_length=1, max_length=2000, json_schema_extra={"example": "Arroz bomba cocinado a fuego lento con marisco fresco del día."})
+    name: str = Field(
+        ...,
+        min_length=1,
+        max_length=120,
+        json_schema_extra={"example": "Paella Marinera Tradicional"},
+    )
+    description: str = Field(
+        ...,
+        min_length=1,
+        max_length=2000,
+        json_schema_extra={
+            "example": "Arroz bomba cocinado a fuego lento con marisco fresco del día."
+        },
+    )
     price: float = Field(..., gt=0, json_schema_extra={"example": 18.50})
     category: Category = Field(..., json_schema_extra={"example": Category.PRINCIPAL})
-    allergens: List[Allergen] = Field(default_factory=list, json_schema_extra={"example": [Allergen.MOLUSCOS, Allergen.PESCADO]})
+    allergens: list[Allergen] = Field(
+        default_factory=list, json_schema_extra={"example": [Allergen.MOLUSCOS, Allergen.PESCADO]}
+    )
     is_vegan: bool = Field(default=False)
     is_vegetarian: bool = Field(default=False)
     available: bool = Field(default=True)
-    image_url: Optional[str] = Field(
+    image_url: str | None = Field(
         default=None,
         pattern=r"^/assets/menu/[a-z0-9-]+\.jpg$",
         json_schema_extra={"example": "/assets/menu/gazpacho.jpg"},
     )
 
+
 class MenuItemCreate(MenuItemBase):
     pass
+
 
 class MenuItemReplace(MenuModel):
     name: str = Field(..., min_length=1, max_length=120)
     description: str = Field(..., min_length=1, max_length=2000)
     price: float = Field(..., gt=0)
     category: Category
-    allergens: List[Allergen]
+    allergens: list[Allergen]
     is_vegan: bool
     is_vegetarian: bool
     available: bool
-    image_url: Optional[str] = Field(
+    image_url: str | None = Field(
         default=None,
         pattern=r"^/assets/menu/[a-z0-9-]+\.jpg$",
         json_schema_extra={"example": "/assets/menu/gazpacho.jpg"},
     )
 
+
 class MenuItemUpdate(MenuModel):
-    name: Optional[str] = Field(None, min_length=1, max_length=120)
-    description: Optional[str] = Field(None, min_length=1, max_length=2000)
-    price: Optional[float] = Field(None, gt=0)
-    category: Optional[Category] = None
-    allergens: Optional[List[Allergen]] = None
-    is_vegan: Optional[bool] = None
-    is_vegetarian: Optional[bool] = None
-    available: Optional[bool] = None
-    image_url: Optional[str] = Field(
+    name: str | None = Field(None, min_length=1, max_length=120)
+    description: str | None = Field(None, min_length=1, max_length=2000)
+    price: float | None = Field(None, gt=0)
+    category: Category | None = None
+    allergens: list[Allergen] | None = None
+    is_vegan: bool | None = None
+    is_vegetarian: bool | None = None
+    available: bool | None = None
+    image_url: str | None = Field(
         default=None,
         pattern=r"^/assets/menu/[a-z0-9-]+\.jpg$",
         json_schema_extra={"example": "/assets/menu/gazpacho.jpg"},
@@ -84,6 +104,7 @@ class MenuItemUpdate(MenuModel):
             raise ValueError("Menu item fields cannot be null.")
         return self
 
+
 class MenuItem(MenuItemBase):
     id: str
 
@@ -94,8 +115,10 @@ class MenuItem(MenuItemBase):
             diet_labels.append("Apto para veganos")
         if self.is_vegetarian:
             diet_labels.append("Apto para vegetarianos")
-        
-        allergens_str = ", ".join([a.value for a in self.allergens]) if self.allergens else "Ninguno registrado"
+
+        allergens_str = (
+            ", ".join([a.value for a in self.allergens]) if self.allergens else "Ninguno registrado"
+        )
         diets_str = ", ".join(diet_labels) if diet_labels else "Opción no vegetariana/vegana"
 
         return (

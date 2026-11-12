@@ -93,14 +93,19 @@ async def evaluate() -> dict:
     for (query, expected_id), ranked in zip(CASES, rankings):
         top_ids = [item["id"] for item, _ in ranked[:3]]
         print(
-            json.dumps({"query": query, "expected_id": expected_id, "top_3_ids": top_ids}, ensure_ascii=False),
+            json.dumps(
+                {"query": query, "expected_id": expected_id, "top_3_ids": top_ids},
+                ensure_ascii=False,
+            ),
             file=sys.stderr,
             flush=True,
         )
     results = []
     for (query, expected_id), ranked in zip(CASES, rankings):
         messages = [
-            SystemMessage(content="Responde en español, de forma concisa. Consulta siempre search_menu antes de responder y usa solo la información recuperada."),
+            SystemMessage(
+                content="Responde en español, de forma concisa. Consulta siempre search_menu antes de responder y usa solo la información recuperada."
+            ),
             HumanMessage(content=query),
         ]
         response = await chat.ainvoke(messages)
@@ -118,14 +123,16 @@ async def evaluate() -> dict:
                 raise ValueError("The model requested additional tools after receiving context.")
             answer = response.text
         top_ids = [item["id"] for item, _ in ranked[:3]]
-        results.append({
-            "query": query,
-            "expected_id": expected_id,
-            "top_3_ids": top_ids,
-            "retrieved_expected": expected_id in top_ids,
-            "used_search_tool": bool(calls),
-            "answer": answer,
-        })
+        results.append(
+            {
+                "query": query,
+                "expected_id": expected_id,
+                "top_3_ids": top_ids,
+                "retrieved_expected": expected_id in top_ids,
+                "used_search_tool": bool(calls),
+                "answer": answer,
+            }
+        )
     return {
         "chat_model": CHAT_MODEL,
         "embedding_model": EMBEDDING_MODEL,

@@ -1,12 +1,20 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from zoneinfo import ZoneInfo
 
 import pytest
 from pymongo.errors import DuplicateKeyError
 
-from app.core.exceptions import ReservationConflictException, ReservationNotFoundException, ReservationValidationException
+from app.core.exceptions import (
+    ReservationConflictException,
+    ReservationNotFoundException,
+    ReservationValidationException,
+)
 from app.models import reservation as reservation_models
-from app.models.reservation import ReservationContact, ReservationCreate, ReservationUpdate
+from app.models.reservation import (
+    ReservationContact,
+    ReservationCreate,
+    ReservationUpdate,
+)
 from app.service import reservation as reservation_module
 from app.service.reservation import ReservationService
 
@@ -27,7 +35,7 @@ def reservation_document():
         "time": "18:30",
         "guests": 2,
         "status": "confirmed",
-        "created_at": datetime(2030, 1, 1, tzinfo=timezone.utc),
+        "created_at": datetime(2030, 1, 1, tzinfo=UTC),
     }
 
 
@@ -38,7 +46,9 @@ async def test_get_reservation_requires_both_matching_contact_values(monkeypatch
     async def get_reservation(reservation_id):
         return reservation_document()
 
-    monkeypatch.setattr(reservation_module.reservation_repository, "get_reservation", get_reservation)
+    monkeypatch.setattr(
+        reservation_module.reservation_repository, "get_reservation", get_reservation
+    )
 
     reservation = await service.get_reservation(
         "RES-1",
@@ -62,7 +72,9 @@ async def test_get_reservation_hides_missing_or_mismatched_contacts(monkeypatch,
     async def get_reservation(reservation_id):
         return reservation_document()
 
-    monkeypatch.setattr(reservation_module.reservation_repository, "get_reservation", get_reservation)
+    monkeypatch.setattr(
+        reservation_module.reservation_repository, "get_reservation", get_reservation
+    )
 
     with pytest.raises(ReservationNotFoundException):
         await service.get_reservation("RES-1", contact)
@@ -76,7 +88,9 @@ async def test_create_reservation_serializes_date_and_time_for_mongo(monkeypatch
     async def create_reservation(reservation_data):
         persisted.update(reservation_data)
 
-    monkeypatch.setattr(reservation_module.reservation_repository, "create_reservation", create_reservation)
+    monkeypatch.setattr(
+        reservation_module.reservation_repository, "create_reservation", create_reservation
+    )
     request = ReservationCreate(
         customer_name="Ana Perez",
         email="ana@example.com",
@@ -105,8 +119,12 @@ async def test_patch_reservation_changes_only_editable_fields(monkeypatch):
         updates.update(update_data)
         return True
 
-    monkeypatch.setattr(reservation_module.reservation_repository, "get_reservation", get_reservation)
-    monkeypatch.setattr(reservation_module.reservation_repository, "update_reservation", update_reservation)
+    monkeypatch.setattr(
+        reservation_module.reservation_repository, "get_reservation", get_reservation
+    )
+    monkeypatch.setattr(
+        reservation_module.reservation_repository, "update_reservation", update_reservation
+    )
 
     updated = await service.update_reservation(
         "RES-1",
@@ -131,8 +149,12 @@ async def test_patch_reservation_validates_and_persists_date_and_time_as_typed_v
         updates.update(update_data)
         return True
 
-    monkeypatch.setattr(reservation_module.reservation_repository, "get_reservation", get_reservation)
-    monkeypatch.setattr(reservation_module.reservation_repository, "update_reservation", update_reservation)
+    monkeypatch.setattr(
+        reservation_module.reservation_repository, "get_reservation", get_reservation
+    )
+    monkeypatch.setattr(
+        reservation_module.reservation_repository, "update_reservation", update_reservation
+    )
 
     updated = await service.update_reservation(
         "RES-1",
@@ -152,7 +174,9 @@ async def test_duplicate_contact_for_the_same_day_becomes_a_conflict(monkeypatch
     async def create_reservation(reservation_data):
         raise DuplicateKeyError("duplicate reservation contact")
 
-    monkeypatch.setattr(reservation_module.reservation_repository, "create_reservation", create_reservation)
+    monkeypatch.setattr(
+        reservation_module.reservation_repository, "create_reservation", create_reservation
+    )
     request = ReservationCreate(
         customer_name="Ana Perez",
         email="ana@example.com",
@@ -179,14 +203,19 @@ async def test_cancellation_is_safe_to_retry_and_keeps_the_reservation(monkeypat
         stored["status"] = "cancelled"
         return True
 
-    monkeypatch.setattr(reservation_module.reservation_repository, "get_reservation", get_reservation)
-    monkeypatch.setattr(reservation_module.reservation_repository, "cancel_reservation", cancel_reservation)
+    monkeypatch.setattr(
+        reservation_module.reservation_repository, "get_reservation", get_reservation
+    )
+    monkeypatch.setattr(
+        reservation_module.reservation_repository, "cancel_reservation", cancel_reservation
+    )
 
     await service.cancel_reservation("RES-1", contact)
     await service.cancel_reservation("RES-1", contact)
 
     retained = await service.get_reservation("RES-1", contact)
     assert retained.status == "cancelled"
+
 
 @pytest.mark.asyncio
 async def test_cancelled_reservation_cannot_be_modified(monkeypatch):
@@ -199,8 +228,12 @@ async def test_cancelled_reservation_cannot_be_modified(monkeypatch):
     async def update_reservation(reservation_id, update_data):
         pytest.fail("A cancelled reservation must not be updated.")
 
-    monkeypatch.setattr(reservation_module.reservation_repository, "get_reservation", get_reservation)
-    monkeypatch.setattr(reservation_module.reservation_repository, "update_reservation", update_reservation)
+    monkeypatch.setattr(
+        reservation_module.reservation_repository, "get_reservation", get_reservation
+    )
+    monkeypatch.setattr(
+        reservation_module.reservation_repository, "update_reservation", update_reservation
+    )
 
     with pytest.raises(ReservationValidationException):
         await service.update_reservation(

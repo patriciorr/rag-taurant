@@ -1,14 +1,18 @@
-# main.py
 from contextlib import asynccontextmanager
-from app.core.database import connect_to_mongo, close_mongo_connection
-from app.core.init_db import init_vector_index, seed_initial_menu, seed_restaurant_information, validate_embedding_models
-from fastapi import FastAPI
+
+from fastapi import FastAPI, Request, status
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import settings
-from app.api.menu import router as menu_router
-from app.api.reservation import router as reservation_router
+from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
 from app.api.chat import router as chat_router
 from app.api.information import router as information_router
+from app.api.menu import router as menu_router
+from app.api.reservation import router as reservation_router
+from app.core.config import settings
+from app.core.database import close_mongo_connection, connect_to_mongo
 from app.core.exceptions import (
     DatabaseException,
     EmbeddingServiceException,
@@ -17,12 +21,14 @@ from app.core.exceptions import (
     ReservationNotFoundException,
     ReservationValidationException,
 )
+from app.core.init_db import (
+    init_vector_index,
+    seed_initial_menu,
+    seed_restaurant_information,
+    validate_embedding_models,
+)
 from app.repository.reservation import reservation_repository
-from fastapi import Request, status
-from fastapi.encoders import jsonable_encoder
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
-from starlette.exceptions import HTTPException as StarletteHTTPException
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -38,15 +44,15 @@ async def lifespan(app: FastAPI):
         await close_mongo_connection()
 
 
-app = FastAPI(
-    title=settings.PROJECT_NAME,
-    version=settings.VERSION,
-    lifespan=lifespan
-)
+app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION, lifespan=lifespan)
+
 
 def uses_shared_api_errors(request: Request) -> bool:
     path = request.url.path
-    return path.startswith(f"{settings.API_V1_STR}/menu") or path.startswith(f"{settings.API_V1_STR}/reservations")
+    return path.startswith(f"{settings.API_V1_STR}/menu") or path.startswith(
+        f"{settings.API_V1_STR}/reservations"
+    )
+
 
 @app.exception_handler(RequestValidationError)
 async def request_validation_error_handler(request: Request, exc: RequestValidationError):
@@ -66,6 +72,7 @@ async def request_validation_error_handler(request: Request, exc: RequestValidat
         status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
         content={"detail": jsonable_encoder(exc.errors())},
     )
+
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
@@ -87,37 +94,44 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     }
     return JSONResponse(
         status_code=exc.status_code,
-        content={"detail": jsonable_encoder(exc.detail), "code": codes.get(exc.status_code, "HTTP_ERROR")},
+        content={
+            "detail": jsonable_encoder(exc.detail),
+            "code": codes.get(exc.status_code, "HTTP_ERROR"),
+        },
         headers=exc.headers,
     )
+
 
 @app.exception_handler(MenuItemNotFoundException)
 async def menu_item_not_found_handler(request: Request, exc: MenuItemNotFoundException):
     return JSONResponse(
-        status_code=status.HTTP_404_NOT_FOUND,
-        content={"detail": str(exc), "code": "NOT_FOUND"}
+        status_code=status.HTTP_404_NOT_FOUND, content={"detail": str(exc), "code": "NOT_FOUND"}
     )
+
 
 @app.exception_handler(EmbeddingServiceException)
 async def embedding_service_handler(request: Request, exc: EmbeddingServiceException):
     return JSONResponse(
         status_code=status.HTTP_502_BAD_GATEWAY,
-        content={"detail": "Menu search service unavailable.", "code": "EMBEDDING_SERVICE_ERROR"}
+        content={"detail": "Menu search service unavailable.", "code": "EMBEDDING_SERVICE_ERROR"},
     )
+
 
 @app.exception_handler(DatabaseException)
 async def database_exception_handler(request: Request, exc: DatabaseException):
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"detail": "Internal database error.", "code": "DATABASE_ERROR"}
+        content={"detail": "Internal database error.", "code": "DATABASE_ERROR"},
     )
+
 
 @app.exception_handler(ReservationNotFoundException)
 async def reservation_not_found_handler(request: Request, exc: ReservationNotFoundException):
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
-        content={"detail": "Reservation not found.", "code": "NOT_FOUND"}
+        content={"detail": "Reservation not found.", "code": "NOT_FOUND"},
     )
+
 
 @app.exception_handler(ReservationConflictException)
 async def reservation_conflict_handler(request: Request, exc: ReservationConflictException):
@@ -129,12 +143,14 @@ async def reservation_conflict_handler(request: Request, exc: ReservationConflic
         },
     )
 
+
 @app.exception_handler(ReservationValidationException)
 async def reservation_validation_handler(request: Request, exc: ReservationValidationException):
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
         content={"detail": str(exc), "code": "VALIDATION_ERROR"},
     )
+
 
 @app.exception_handler(Exception)
 async def internal_error_handler(request: Request, exc: Exception):
@@ -147,6 +163,7 @@ async def internal_error_handler(request: Request, exc: Exception):
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"detail": "Internal Server Error"},
     )
+
 
 origins = [
     "http://localhost",
@@ -168,10 +185,13 @@ app.include_router(reservation_router, prefix=settings.API_V1_STR)
 app.include_router(chat_router, prefix=settings.API_V1_STR)
 app.include_router(information_router, prefix=settings.API_V1_STR)
 
+
 @app.get("/")
 def root():
     return {"message": "RAG-taurant API is running", "docs": "/docs"}
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

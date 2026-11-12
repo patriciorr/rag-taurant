@@ -1,4 +1,4 @@
-from datetime import date, datetime, time, timedelta, timezone
+from datetime import UTC, date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -103,7 +103,7 @@ def test_reservation_model_dump_keeps_mongo_compatible_schedule_strings():
         date="2030-02-28",
         time="18:30",
         guests=2,
-        created_at=datetime(2030, 1, 1, tzinfo=timezone.utc),
+        created_at=datetime(2030, 1, 1, tzinfo=UTC),
     )
 
     values = reservation.model_dump()

@@ -10,9 +10,7 @@ from app.rag import embeddings
 async def test_google_embeddings_use_query_and_document_tasks(monkeypatch):
     vector = [0.1] * embeddings.settings.EMBEDDING_DIMENSIONS
     embed_content = AsyncMock(
-        return_value=SimpleNamespace(
-            embeddings=[SimpleNamespace(values=vector)]
-        )
+        return_value=SimpleNamespace(embeddings=[SimpleNamespace(values=vector)])
     )
     client = SimpleNamespace(
         aio=SimpleNamespace(models=SimpleNamespace(embed_content=embed_content))

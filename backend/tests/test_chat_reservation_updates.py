@@ -1,13 +1,13 @@
-from datetime import date, datetime, time, timezone
+from datetime import UTC, date, datetime, time
 from types import SimpleNamespace
 from zoneinfo import ZoneInfo
 
 import pytest
 
+from app.core.exceptions import ReservationNotFoundException
 from app.models import reservation as reservation_models
 from app.models.reservation import ReservationInDB
 from app.rag import agent as agent_module
-from app.core.exceptions import ReservationNotFoundException
 
 
 @pytest.fixture(autouse=True)
@@ -25,7 +25,7 @@ def reservation(**overrides):
         "date": "2030-02-28",
         "time": "18:30",
         "guests": 2,
-        "created_at": datetime(2030, 1, 1, tzinfo=timezone.utc),
+        "created_at": datetime(2030, 1, 1, tzinfo=UTC),
         "status": "confirmed",
     }
     return ReservationInDB(**{**values, **overrides})
@@ -40,7 +40,9 @@ class FakeModel:
 
 
 @pytest.mark.asyncio
-async def test_reservation_edit_is_authorized_summarized_and_applied_only_after_confirmation(monkeypatch):
+async def test_reservation_edit_is_authorized_summarized_and_applied_only_after_confirmation(
+    monkeypatch,
+):
     tool_call = {
         "name": "edit_table_reservation",
         "args": {
@@ -63,7 +65,9 @@ async def test_reservation_edit_is_authorized_summarized_and_applied_only_after_
         return reservation()
 
     async def update_reservation(reservation_id, update, contact):
-        updates.append((reservation_id, update.model_dump(exclude_unset=True), contact.email, contact.phone))
+        updates.append(
+            (reservation_id, update.model_dump(exclude_unset=True), contact.email, contact.phone)
+        )
         return reservation(date=update.date, time=update.time, guests=update.guests)
 
     monkeypatch.setattr(agent_module.reservation_service, "get_reservation", get_reservation)
@@ -86,7 +90,12 @@ async def test_reservation_edit_is_authorized_summarized_and_applied_only_after_
 
     assert "se ha modificado" in completed["output"].lower()
     assert updates == [
-        ("RES-1", {"date": date(2030, 3, 1), "time": time(19, 0), "guests": 4}, "ana@example.com", "+34612345678")
+        (
+            "RES-1",
+            {"date": date(2030, 3, 1), "time": time(19, 0), "guests": 4},
+            "ana@example.com",
+            "+34612345678",
+        )
     ]
 
 
@@ -273,9 +282,7 @@ async def test_reservation_edit_waits_for_an_affirmative_confirmation(
     ("field", "value"),
     [("date", "2030-03-14"), ("time", "11:30")],
 )
-async def test_reservation_edit_reuses_reservation_schedule_validation(
-    monkeypatch, field, value
-):
+async def test_reservation_edit_reuses_reservation_schedule_validation(monkeypatch, field, value):
     monkeypatch.setattr(agent_module, "session_store", {})
     monkeypatch.setattr(
         agent_module,

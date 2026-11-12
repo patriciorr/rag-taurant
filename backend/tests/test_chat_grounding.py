@@ -91,12 +91,14 @@ async def test_include_exclude_allergens_and_unavailable_dishes(monkeypatch):
 
     monkeypatch.setattr(tools_module.menu_service, "list_menu", list_menu)
     monkeypatch.setattr(tools_module.menu_service, "search_similar_dishes", search_similar_dishes)
-    result = await tools_module.search_menu.ainvoke({
-        "query": "con pescado sin gluten",
-        "include_allergens": ["pescado"],
-        "exclude_allergens": ["gluten"],
-        "available_only": False,
-    })
+    result = await tools_module.search_menu.ainvoke(
+        {
+            "query": "con pescado sin gluten",
+            "include_allergens": ["pescado"],
+            "exclude_allergens": ["gluten"],
+            "available_only": False,
+        }
+    )
     assert "- Pescado (" in result
     assert "Pescado agotado" in result
     assert "Pescado con gluten" not in result and "Gazpacho" not in result
@@ -183,7 +185,10 @@ async def test_menu_search_reports_when_filters_leave_no_evidence(monkeypatch):
         {"query": "plato sin gluten", "exclude_allergens": ["gluten"]}
     )
 
-    assert result == "No encontré platos disponibles que coincidan con la consulta y los filtros indicados."
+    assert (
+        result
+        == "No encontré platos disponibles que coincidan con la consulta y los filtros indicados."
+    )
 
 
 @pytest.mark.asyncio
@@ -278,11 +283,13 @@ async def test_allergy_answer_always_includes_cross_contact_notice(monkeypatch):
     class Selector:
         async def ainvoke(self, messages):
             return SimpleNamespace(
-                tool_calls=[{
-                    "name": "search_menu",
-                    "args": {"query": "sin gluten", "exclude_allergens": ["gluten"]},
-                    "id": "1",
-                }],
+                tool_calls=[
+                    {
+                        "name": "search_menu",
+                        "args": {"query": "sin gluten", "exclude_allergens": ["gluten"]},
+                        "id": "1",
+                    }
+                ],
                 content="",
             )
 
@@ -321,11 +328,13 @@ async def test_allergy_notice_distinguishes_allergies_from_preferences(
     class Selector:
         async def ainvoke(self, messages):
             return SimpleNamespace(
-                tool_calls=[{
-                    "name": "search_menu",
-                    "args": {"query": "pescado", "include_allergens": ["pescado"]},
-                    "id": "1",
-                }],
+                tool_calls=[
+                    {
+                        "name": "search_menu",
+                        "args": {"query": "pescado", "include_allergens": ["pescado"]},
+                        "id": "1",
+                    }
+                ],
                 content="",
             )
 
@@ -351,7 +360,9 @@ async def test_allergy_notice_distinguishes_allergies_from_preferences(
 async def test_allergy_notice_is_present_without_tool_calls(monkeypatch):
     class Model:
         async def ainvoke(self, messages):
-            return SimpleNamespace(tool_calls=[], content="Puedes preguntarme por los alérgenos de la carta.")
+            return SimpleNamespace(
+                tool_calls=[], content="Puedes preguntarme por los alérgenos de la carta."
+            )
 
     monkeypatch.setattr(agent_module, "llm_with_tools", Model())
     monkeypatch.setattr(agent_module, "session_store", {})

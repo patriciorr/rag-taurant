@@ -69,9 +69,7 @@ def test_forecast_returns_only_an_explicit_date_in_the_horizon(monkeypatch):
 
 
 @pytest.mark.parametrize("requested_date", ["2030-02-27", "2030-03-14"])
-def test_forecast_rejects_dates_outside_the_available_horizon(
-    monkeypatch, requested_date
-):
+def test_forecast_rejects_dates_outside_the_available_horizon(monkeypatch, requested_date):
     today = date(2030, 2, 28)
     observed = {}
     stub_open_meteo(monkeypatch, forecast_payload(today), observed)

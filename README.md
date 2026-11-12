@@ -114,7 +114,7 @@ Ensure you have installed on your host system:
 
 - **Docker Desktop** / **Docker Engine**: `v24.0+`
 - **Docker Compose**: `v2.20+`
-- _(Optional)_ **Python 3.11+** & **Node.js 20+** (if developing locally without Docker)
+- _(Optional)_ **Python 3.11** & **Node.js 20+** (if developing locally without Docker)
 
 ---
 
@@ -178,11 +178,15 @@ Alternatively, put `GOOGLE_API_KEY` and optional model overrides in `backend/.en
 
 ```bash
 cd backend
-python -m venv .venv
+python3.11 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+python -m pip install -r requirements-dev.txt
 python main.py
 ```
+
+Select `backend/.venv/bin/python` as the Python interpreter in VS Code. This
+environment matches the backend container's Python 3.11 version and includes
+the dependencies needed to run tests.
 
 #### 3. Frontend Setup
 
@@ -268,15 +272,17 @@ the restaurant itself is fictional. Review the content before publishing it.
 
 Run everything from the repository root. The backend integration tests need the
 local MongoDB container; the tests stub Gemini and do not require a Google key.
+Create the Python 3.11 backend environment as described in
+[Backend Setup](#2-backend-setup) first.
 
 ```bash
 # Frontend (Vitest + React Testing Library)
 cd frontend && npm ci && npm test && npm run lint && cd ..
 
 # Backend (pytest, unit + MongoDB integration)
-pip install -r backend/requirements-dev.txt
+backend/.venv/bin/python -m pip install -r backend/requirements-dev.txt
 docker compose up --wait mongodb
-cd backend && python -m pytest -c pytest.ini
+cd backend && .venv/bin/python -m pytest -c pytest.ini
 ```
 
 See [Frontend Checks](#frontend-checks) and [Backend Tests](#backend-tests) for
@@ -340,13 +346,14 @@ for HTTPS and a production-grade authorization system.
 
 ### Backend Tests
 
-Install the development test dependencies and start only the local MongoDB service:
+Using the Python 3.11 environment from [Backend Setup](#2-backend-setup),
+install the development test dependencies and start only the local MongoDB service:
 
 ```bash
-pip install -r backend/requirements-dev.txt
+backend/.venv/bin/python -m pip install -r backend/requirements-dev.txt
 docker compose up --wait mongodb
 cd backend
-python -m pytest -c pytest.ini
+.venv/bin/python -m pytest -c pytest.ini
 ```
 
 The `mongodb` service runs MongoDB Atlas Local from the official `mongodb/mongodb-atlas-local` image and publishes port `27017` for tests run on the host. `--wait` does not return until its health check succeeds. The full test command includes both unit and MongoDB integration tests; Gemini is stubbed.

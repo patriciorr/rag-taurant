@@ -22,9 +22,8 @@ from app.evaluation.embedding_migration import (
     get_vector_index_dimensions,
     vector_index_definition,
 )
-from app.service.menu import menu_embedding_text
 from app.rag.embeddings import embeddings_service
-
+from app.service.menu import menu_embedding_text
 
 logger = logging.getLogger(__name__)
 INDEX_READY_TIMEOUT_SECONDS = 300
@@ -99,9 +98,7 @@ def _embedding_text(collection_name: str, document: Mapping[str, Any]) -> str:
         return menu_embedding_text(document)
     content = document.get("content")
     if not isinstance(content, str) or not content.strip():
-        raise ValueError(
-            f"Knowledge document {document.get('_id')!r} has no non-empty content."
-        )
+        raise ValueError(f"Knowledge document {document.get('_id')!r} has no non-empty content.")
     return content
 
 
@@ -124,9 +121,7 @@ async def _prepare_collection_embeddings(
             f"Embedding model returned {len(vectors)} vectors for "
             f"{len(documents)} documents in {collection_name!r}."
         )
-    invalid_dimensions = sorted(
-        {len(vector) for vector in vectors if len(vector) != dimensions}
-    )
+    invalid_dimensions = sorted({len(vector) for vector in vectors if len(vector) != dimensions})
     if invalid_dimensions:
         raise RuntimeError(
             f"Embedding model {settings.EMBEDDING_MODEL!r} returned dimensions "
@@ -180,11 +175,13 @@ async def _store_collection_embeddings(
     operations = [
         UpdateOne(
             {"_id": document["_id"]},
-            {"$set": {
-                "embedding": vector,
-                "embedding_model": settings.EMBEDDING_MODEL,
-                "embedding_dimensions": dimensions,
-            }},
+            {
+                "$set": {
+                    "embedding": vector,
+                    "embedding_model": settings.EMBEDDING_MODEL,
+                    "embedding_dimensions": dimensions,
+                }
+            },
         )
         for document, vector in zip(documents, vectors)
     ]

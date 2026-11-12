@@ -1,11 +1,11 @@
-# app/api/menu.py
-from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+
 from app.core.security import require_menu_admin
 from app.models.menu import MenuItem, MenuItemCreate, MenuItemReplace, MenuItemUpdate
 from app.service.menu import menu_service
 
 router = APIRouter(prefix="/menu", tags=["Menu"])
+
 
 @router.get("/search")
 async def search_dishes_vectorial(
@@ -14,35 +14,49 @@ async def search_dishes_vectorial(
 ):
     query = query.strip()
     if not query:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="Query cannot be empty.")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Query cannot be empty.",
+        )
 
     results = await menu_service.search_similar_dishes(query=query, limit=limit)
-    return {
-        "query": query,
-        "total_results": len(results),
-        "results": results
-    }
+    return {"query": query, "total_results": len(results), "results": results}
 
-@router.get("/", response_model=List[MenuItem])
+
+@router.get("/", response_model=list[MenuItem])
 async def get_all_dishes():
     return await menu_service.list_menu()
+
 
 @router.get("/{dish_id}", response_model=MenuItem)
 async def get_dish(dish_id: str):
     return await menu_service.get_menu_item(dish_id)
 
-@router.post("/", response_model=MenuItem, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_menu_admin)])
+
+@router.post(
+    "/",
+    response_model=MenuItem,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_menu_admin)],
+)
 async def create_dish(dish_in: MenuItemCreate):
     return await menu_service.create_menu_item(dish_in)
+
 
 @router.put("/{dish_id}", response_model=MenuItem, dependencies=[Depends(require_menu_admin)])
 async def replace_dish(dish_id: str, dish_in: MenuItemReplace):
     return await menu_service.replace_menu_item(dish_id, dish_in)
 
+
 @router.patch("/{dish_id}", response_model=MenuItem, dependencies=[Depends(require_menu_admin)])
 async def update_dish(dish_id: str, dish_in: MenuItemUpdate):
     return await menu_service.update_menu_item(dish_id, dish_in)
 
-@router.delete("/{dish_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_menu_admin)])
+
+@router.delete(
+    "/{dish_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_menu_admin)],
+)
 async def delete_dish(dish_id: str):
     await menu_service.delete_menu_item(dish_id)

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 
 import pytest
@@ -16,7 +16,7 @@ def reservation(status: str) -> ReservationInDB:
         date="2030-02-28",
         time="18:30",
         guests=2,
-        created_at=datetime(2030, 1, 1, tzinfo=timezone.utc),
+        created_at=datetime(2030, 1, 1, tzinfo=UTC),
         status=status,
     )
 
@@ -105,9 +105,7 @@ async def test_weather_uses_only_a_verified_active_reservation_date(
     )
 
     assert result["output"] == "Previsión consultada."
-    assert weather_tool.arguments == (
-        {"date": expected_date} if expected_date else {"date": None}
-    )
+    assert weather_tool.arguments == ({"date": expected_date} if expected_date else {"date": None})
 
 
 @pytest.mark.asyncio

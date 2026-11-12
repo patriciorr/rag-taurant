@@ -3,18 +3,18 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from app.repository.reservation import reservation_repository
-
 from app.core import init_db
+from app.repository.reservation import reservation_repository
 from app.service import menu as menu_module
 from scripts import reindex_embeddings
-
 
 pytestmark = pytest.mark.integration
 
 
 @pytest.mark.asyncio
-async def test_restaurant_information_seed_preserves_existing_knowledge(mongo_api_client, monkeypatch):
+async def test_restaurant_information_seed_preserves_existing_knowledge(
+    mongo_api_client, monkeypatch
+):
     collection = init_db.db_instance.db["knowledge"]
     await collection.insert_one({"_id": "custom", "content": "Información personalizada."})
     calls = []
@@ -92,7 +92,9 @@ def menu_embedding(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_menu_crud_uses_real_mongo_and_stubbed_embeddings(mongo_api_client, menu_embedding, monkeypatch):
+async def test_menu_crud_uses_real_mongo_and_stubbed_embeddings(
+    mongo_api_client, menu_embedding, monkeypatch
+):
     monkeypatch.setattr(init_db.settings, "MENU_ADMIN_TOKEN", "test-menu-token")
     mongo_api_client.headers["Authorization"] = "Bearer test-menu-token"
     payload = {
@@ -278,17 +280,27 @@ async def test_reservations_enforce_contact_uniqueness_and_protected_crud(mongo_
     assert rebooked.status_code == 201
     assert rebooked.json()["status"] == "confirmed"
 
+
 @pytest.mark.asyncio
 async def test_ensure_indexes_upgrades_legacy_unconditional_unique_indexes(mongo_api_client):
     from app.core.database import db_instance
 
     collection = db_instance.db["reservations"]
     await collection.drop_indexes()
-    await collection.create_index([("email", 1), ("date", 1)], unique=True, name="reservation_email_per_day")
-    await collection.create_index([("phone", 1), ("date", 1)], unique=True, name="reservation_phone_per_day")
+    await collection.create_index(
+        [("email", 1), ("date", 1)], unique=True, name="reservation_email_per_day"
+    )
+    await collection.create_index(
+        [("phone", 1), ("date", 1)], unique=True, name="reservation_phone_per_day"
+    )
     await collection.insert_one(
-        {"reservation_id": "RES-OLD", "email": "ana@example.com", "phone": "+34612345678",
-         "date": "2030-02-28", "status": "cancelled"}
+        {
+            "reservation_id": "RES-OLD",
+            "email": "ana@example.com",
+            "phone": "+34612345678",
+            "date": "2030-02-28",
+            "status": "cancelled",
+        }
     )
 
     await reservation_repository.ensure_indexes()
@@ -297,6 +309,11 @@ async def test_ensure_indexes_upgrades_legacy_unconditional_unique_indexes(mongo
     for name in ("reservation_email_per_day", "reservation_phone_per_day"):
         assert indexes[name]["partialFilterExpression"] == {"status": "confirmed"}
     await collection.insert_one(
-        {"reservation_id": "RES-NEW", "email": "ana@example.com", "phone": "+34612345678",
-         "date": "2030-02-28", "status": "confirmed"}
+        {
+            "reservation_id": "RES-NEW",
+            "email": "ana@example.com",
+            "phone": "+34612345678",
+            "date": "2030-02-28",
+            "status": "confirmed",
+        }
     )

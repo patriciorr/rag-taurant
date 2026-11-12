@@ -1,19 +1,18 @@
-# app/repository/menu.py
-from typing import List, Optional
 from app.core.database import db_instance
+
 
 class MenuRepository:
     @property
     def collection(self):
         return db_instance.db["menu"]
 
-    async def list_menu(self) -> List[dict]:
+    async def list_menu(self) -> list[dict]:
         cursor = self.collection.find(
             {}, {"_id": 0, "embedding": 0, "embedding_model": 0, "embedding_dimensions": 0}
         )
         return [doc async for doc in cursor]
 
-    async def get_menu_item(self, dish_id: str) -> Optional[dict]:
+    async def get_menu_item(self, dish_id: str) -> dict | None:
         return await self.collection.find_one(
             {"id": dish_id},
             {"_id": 0, "embedding": 0, "embedding_model": 0, "embedding_dimensions": 0},
@@ -30,7 +29,7 @@ class MenuRepository:
         result = await self.collection.delete_one({"id": dish_id})
         return result.deleted_count > 0
 
-    async def vector_search(self, query_vector: List[float], limit: int = 3) -> List[dict]:
+    async def vector_search(self, query_vector: list[float], limit: int = 3) -> list[dict]:
         pipeline = [
             {
                 "$vectorSearch": {
@@ -38,7 +37,7 @@ class MenuRepository:
                     "path": "embedding",
                     "queryVector": query_vector,
                     "numCandidates": limit * 10,
-                    "limit": limit
+                    "limit": limit,
                 }
             },
             {
@@ -47,11 +46,12 @@ class MenuRepository:
                     "embedding": 0,
                     "embedding_model": 0,
                     "embedding_dimensions": 0,
-                    "score": {"$meta": "vectorSearchScore"}
+                    "score": {"$meta": "vectorSearchScore"},
                 }
-            }
+            },
         ]
         cursor = await self.collection.aggregate(pipeline)
         return [doc async for doc in cursor]
+
 
 menu_repository = MenuRepository()

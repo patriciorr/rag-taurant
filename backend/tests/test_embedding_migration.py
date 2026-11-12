@@ -1,39 +1,49 @@
 import pytest
 
-from app.evaluation.embedding_migration import get_vector_index_dimensions, vector_index_definition
+from app.evaluation.embedding_migration import (
+    get_vector_index_dimensions,
+    vector_index_definition,
+)
 from app.service.menu import menu_embedding_text
 from scripts import reindex_embeddings
 
 
 def test_vector_index_definition_uses_configured_embedding_dimensions():
     assert vector_index_definition(1024) == {
-        "fields": [{
-            "type": "vector",
-            "path": "embedding",
-            "numDimensions": 1024,
-            "similarity": "cosine",
-        }]
+        "fields": [
+            {
+                "type": "vector",
+                "path": "embedding",
+                "numDimensions": 1024,
+                "similarity": "cosine",
+            }
+        ]
     }
 
 
 @pytest.mark.parametrize("key", ["definition", "latestDefinition"])
 def test_vector_index_dimensions_reads_index_shapes(key):
-    assert get_vector_index_dimensions({
-        key: {"fields": [{"type": "vector", "path": "embedding", "numDimensions": 768}]}
-    }) == 768
+    assert (
+        get_vector_index_dimensions(
+            {key: {"fields": [{"type": "vector", "path": "embedding", "numDimensions": 768}]}}
+        )
+        == 768
+    )
     assert get_vector_index_dimensions({key: {"fields": []}}) is None
 
 
 def test_menu_embedding_text_includes_structured_diet_and_allergens():
-    text = menu_embedding_text({
-        "name": "Gazpacho",
-        "category": "entrante",
-        "price": 8.5,
-        "description": "Sopa fría",
-        "is_vegan": True,
-        "is_vegetarian": True,
-        "allergens": [],
-    })
+    text = menu_embedding_text(
+        {
+            "name": "Gazpacho",
+            "category": "entrante",
+            "price": 8.5,
+            "description": "Sopa fría",
+            "is_vegan": True,
+            "is_vegetarian": True,
+            "allergens": [],
+        }
+    )
     assert "Plato: Gazpacho" in text
     assert "Apto para veganos: Sí" in text
     assert "Alérgenos: Ninguno" in text
@@ -61,7 +71,9 @@ async def test_reindex_prepares_every_collection_before_modifying_indexes(monkey
     monkeypatch.setattr(reindex_embeddings, "_store_collection_embeddings", store)
     with pytest.raises(RuntimeError, match="Embedding request failed"):
         await reindex_embeddings._migrate_collections(
-            database=object(), collection_names=["menu", "knowledge"],
-            embedding_model=object(), dimensions=1024,
+            database=object(),
+            collection_names=["menu", "knowledge"],
+            embedding_model=object(),
+            dimensions=1024,
         )
     assert operations == [("prepare", "menu"), ("prepare", "knowledge")]

@@ -9,12 +9,16 @@ from scripts import evaluate_gemini_models as evaluation
 
 @pytest.mark.asyncio
 async def test_candidate_embeddings_use_text_instructions_without_task_type():
-    embed_content = AsyncMock(return_value=SimpleNamespace(
-        embeddings=[SimpleNamespace(values=[0.1] * evaluation.DIMENSIONS)]
-    ))
-    service = SimpleNamespace(client=SimpleNamespace(
-        aio=SimpleNamespace(models=SimpleNamespace(embed_content=embed_content))
-    ))
+    embed_content = AsyncMock(
+        return_value=SimpleNamespace(
+            embeddings=[SimpleNamespace(values=[0.1] * evaluation.DIMENSIONS)]
+        )
+    )
+    service = SimpleNamespace(
+        client=SimpleNamespace(
+            aio=SimpleNamespace(models=SimpleNamespace(embed_content=embed_content))
+        )
+    )
     text = evaluation.query_text("¿Qué vino?")
 
     vectors = await evaluation.embed_texts(service, [text])
@@ -23,7 +27,9 @@ async def test_candidate_embeddings_use_text_instructions_without_task_type():
     assert request["model"] == "gemini-embedding-2"
     assert request["config"].task_type is None
     assert request["config"].output_dimensionality == 1536
-    assert request["contents"] == [{"parts": [{"text": "task: question answering | query: ¿Qué vino?"}]}]
+    assert request["contents"] == [
+        {"parts": [{"text": "task: question answering | query: ¿Qué vino?"}]}
+    ]
     assert len(vectors[0]) == 1536
 
 
@@ -40,9 +46,15 @@ def test_candidate_document_format_and_cosine():
 
 @pytest.mark.asyncio
 async def test_candidate_embeddings_reject_invalid_response():
-    service = SimpleNamespace(client=SimpleNamespace(aio=SimpleNamespace(
-        models=SimpleNamespace(embed_content=AsyncMock(return_value=SimpleNamespace(embeddings=[])))
-    )))
+    service = SimpleNamespace(
+        client=SimpleNamespace(
+            aio=SimpleNamespace(
+                models=SimpleNamespace(
+                    embed_content=AsyncMock(return_value=SimpleNamespace(embeddings=[]))
+                )
+            )
+        )
+    )
     with pytest.raises(ValueError, match="unexpected count or dimension"):
         await evaluation.embed_texts(service, ["text"])
 
@@ -59,10 +71,17 @@ async def test_evaluator_runs_tool_round_trip_without_other_models(monkeypatch):
         def __init__(self, **kwargs):
             models.append(kwargs["model"])
             assert kwargs["thinking_level"] == "medium"
-            self.invoke = AsyncMock(side_effect=[
-                AIMessage(content="", tool_calls=[{"name": "search_menu", "args": {"query": "gazpacho"}, "id": "call-1"}]),
-                AIMessage(content="Gazpacho: 8,50 euros."),
-            ])
+            self.invoke = AsyncMock(
+                side_effect=[
+                    AIMessage(
+                        content="",
+                        tool_calls=[
+                            {"name": "search_menu", "args": {"query": "gazpacho"}, "id": "call-1"}
+                        ],
+                    ),
+                    AIMessage(content="Gazpacho: 8,50 euros."),
+                ]
+            )
 
         def bind_tools(self, tools):
             return SimpleNamespace(ainvoke=self.invoke)

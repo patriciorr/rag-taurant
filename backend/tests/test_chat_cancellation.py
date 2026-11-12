@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 
 import pytest
@@ -18,7 +18,7 @@ def reservation():
         date="2030-02-28",
         time="18:30",
         guests=2,
-        created_at=datetime(2030, 1, 1, tzinfo=timezone.utc),
+        created_at=datetime(2030, 1, 1, tzinfo=UTC),
         status="confirmed",
     )
 

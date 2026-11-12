@@ -285,9 +285,7 @@ async def init_vector_index():
                     {
                         "name": VECTOR_INDEX_NAME,
                         "type": "vectorSearch",
-                        "definition": vector_index_definition(
-                            settings.EMBEDDING_DIMENSIONS
-                        ),
+                        "definition": vector_index_definition(settings.EMBEDDING_DIMENSIONS),
                     }
                 ],
             )
@@ -307,9 +305,7 @@ async def seed_initial_menu():
     """Upserts only the curated catalog records, retaining all other menu data."""
     collection = db_instance.db["menu"]
     seeded_ids = [item["id"] for item in INITIAL_MENU]
-    existing_items = await collection.find({"id": {"$in": seeded_ids}}).to_list(
-        length=None
-    )
+    existing_items = await collection.find({"id": {"$in": seeded_ids}}).to_list(length=None)
     existing_by_id = {item["id"]: item for item in existing_items}
     fields = tuple(INITIAL_MENU[0])
     changed_items = [
@@ -325,18 +321,18 @@ async def seed_initial_menu():
         return
 
     print(f"Updating {len(changed_items)} curated dishes and generating embeddings...")
-    vectors = await get_embeddings_batch(
-        [menu_embedding_text(item) for item in changed_items]
-    )
+    vectors = await get_embeddings_batch([menu_embedding_text(item) for item in changed_items])
     for item, vector in zip(changed_items, vectors):
         await collection.update_one(
             {"id": item["id"]},
-            {"$set": {
-                **item,
-                "embedding": vector,
-                "embedding_model": settings.EMBEDDING_MODEL,
-                "embedding_dimensions": settings.EMBEDDING_DIMENSIONS,
-            }},
+            {
+                "$set": {
+                    **item,
+                    "embedding": vector,
+                    "embedding_model": settings.EMBEDDING_MODEL,
+                    "embedding_dimensions": settings.EMBEDDING_DIMENSIONS,
+                }
+            },
             upsert=True,
         )
     print(f"Upserted {len(changed_items)} curated dishes.")
@@ -353,7 +349,8 @@ async def seed_restaurant_information():
     ).to_list(length=None)
     by_id = {document["_id"]: document for document in existing}
     changed = [
-        document for document in documents
+        document
+        for document in documents
         if document["_id"] not in by_id
         or not by_id[document["_id"]].get("embedding")
         or any(by_id[document["_id"]].get(key) != value for key, value in document.items())
@@ -364,12 +361,14 @@ async def seed_restaurant_information():
     for document, vector in zip(changed, vectors):
         await collection.update_one(
             {"_id": document["_id"]},
-            {"$set": {
-                "title": document["title"],
-                "content": document["content"],
-                "embedding": vector,
-                "embedding_model": settings.EMBEDDING_MODEL,
-                "embedding_dimensions": settings.EMBEDDING_DIMENSIONS,
-            }},
+            {
+                "$set": {
+                    "title": document["title"],
+                    "content": document["content"],
+                    "embedding": vector,
+                    "embedding_model": settings.EMBEDDING_MODEL,
+                    "embedding_dimensions": settings.EMBEDDING_DIMENSIONS,
+                }
+            },
             upsert=True,
         )
