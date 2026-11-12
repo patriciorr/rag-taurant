@@ -14,7 +14,6 @@
 [![Railway](https://img.shields.io/badge/Railway-grey?logo=railway)](https://rag-taurant.up.railway.app/)
 [![License: AGPL v3](https://img.shields.io/badge/Open%20Source-darkgrey?logo=opensourceinitiative&logoColor=white)](./LICENSE)
 
-
 **[🌐 Open RAGtaurant](https://rag-taurant.up.railway.app/)**
 
 [The story](#-the-story) · [Key features](#-key-features) · [How I built it](#️-how-i-built-it) ·
