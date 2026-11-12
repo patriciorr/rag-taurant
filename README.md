@@ -4,13 +4,16 @@
 
 **A fictional restaurant where AI helps guests explore the menu and its allergens.**
 
+[![React](https://img.shields.io/badge/React-blue?logo=react&logoColor=white)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
+[![NGINX](https://img.shields.io/badge/Nginx-darkgreen?logo=nginx)](https://www.nginx.com/)
 [![Python](https://img.shields.io/badge/Python-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![React](https://img.shields.io/badge/React-blue?logo=react&logoColor=white)](https://react.dev/)
-[![LangChain](https://img.shields.io/badge/LangChain-1C3C3C?logo=langchain&logoColor=white)](https://www.langchain.com/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-green?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
-[![Docker](https://img.shields.io/badge/Docker-darkblue?logo=docker&logoColor=white)](https://www.docker.com/)
 [![AWS](https://custom-icon-badges.demolab.com/badge/S3-orange.svg?logo=aws&logoColor=white)](https://aws.amazon.com)
+[![LangChain](https://img.shields.io/badge/LangChain-1C3C3C?logo=langchain&logoColor=white)](https://www.langchain.com/)
+[![Google Gemini](https://img.shields.io/badge/Gemini-red?logo=google&logoColor=white)](https://cloud.google.com/vertex-ai)
+[![Docker](https://img.shields.io/badge/Docker-darkblue?logo=docker&logoColor=white)](https://www.docker.com/)
 [![Railway](https://img.shields.io/badge/Railway-grey?logo=railway)](https://rag-taurant.up.railway.app/)
 [![License: AGPL v3](https://img.shields.io/badge/Open%20Source-darkgrey?logo=opensourceinitiative&logoColor=white)](./LICENSE)
 
@@ -81,23 +84,26 @@ flowchart LR
         Mongo[("🍃 MongoDB<br/>menu · reservations · embeddings")]
         Volume[("💾 Persistent volume")]
         Bucket[("🪣 Private S3-compatible bucket<br/>menu images")]
-        Frontend -->|API and images| Backend
-        Backend --> Mongo
+        Frontend <-->|API and images| Backend
+        Backend <--> Mongo
         Mongo --- Volume
-        Backend -->|Authenticated HTTPS| Bucket
+        Backend <-->|Authenticated HTTPS| Bucket
     end
 
-    User["👤 Guest"] -->|HTTPS| Frontend
-    Backend -->|Chat and embeddings| Gemini["✨ Google Gemini"]
-    Backend -->|Weather forecast| Weather["☀️ Open-Meteo"]
-    Main -->|Deploy| Frontend
-    Main -->|Deploy| Backend
+    User["👤 User"] <-->|HTTPS| Frontend
+    Backend <-->|Chat and embeddings| Gemini["✨ Google Gemini"]
+    Backend <-->|Weather forecast| Weather["☀️ Open-Meteo"]
+    Pipeline -->|Deploy| Railway
 
     classDef github fill:#e8eaf6,stroke:#3949ab,color:#1a237e
     classDef service fill:#e0f2f1,stroke:#00897b,color:#004d40
     classDef data fill:#fff3e0,stroke:#ef6c00,color:#4e2600
+    classDef user fill:#f3e5f5,stroke:#8e24aa,color:#4a148c
+    classDef external fill:#fffde7,stroke:#fbc02d,color:#4e342e
     class Develop,PR,CI,Main github
     class Frontend,Backend service
+    class User user
+    class Gemini,Weather external
     class Mongo,Volume,Bucket data
 ```
 
