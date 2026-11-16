@@ -114,6 +114,28 @@ export default function App() {
           </span>
         </a>
         <p>Hecho con calma por Patricio Rodríguez.</p>
+        <p>
+          Copyright &copy; {new Date().getFullYear()} ·
+          <a
+            className="footer-link"
+            href="https://github.com/patriciorr/rag-taurant/blob/main/LICENSE"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Licencia AGPL-3.0"
+          >
+            AGPL-3.0
+          </a>
+          ·
+          <a
+            className="footer-link"
+            href="https://www.github.com/patriciorr/rag-taurant"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Código fuente de la aplicación"
+          >
+            Código fuente
+          </a>
+        </p>
         <div className="footer-social">
           <a
             href="mailto:patriciorodriguezramirez@gmail.com"
