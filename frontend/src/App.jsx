@@ -3,6 +3,7 @@ import EmailIcon from '@mui/icons-material/Email';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import ChatWidget from './components/ChatWidget';
+import FAQSection from './components/FAQSection';
 import MenuSection from './components/MenuSection';
 import ReservationSection from './components/ReservationSection';
 import { getMenu, getRestaurantInformation } from './services/api';
@@ -40,6 +41,7 @@ export default function App() {
         </a>
         <nav aria-label="Navegación principal">
           <a href="#carta">La carta</a>
+          <a href="#preguntas">Preguntas frecuentes</a>
         </nav>
         <a className="header-booking" href="#reservas">
           Reserva tu mesa <span aria-hidden="true">↗</span>
@@ -102,6 +104,7 @@ export default function App() {
           </a>
         </section>
         <ReservationSection />
+        <FAQSection />
       </main>
 
       <footer className="site-footer">
