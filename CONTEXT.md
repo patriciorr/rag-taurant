@@ -2,6 +2,11 @@
 
 Shared language for the restaurant menu and reservation experience.
 
+## Portfolio demo
+
+**Portfolio demo**:
+A demonstration website for a fictional restaurant. Its menu, prices, photographs, and allergen information are illustrative and do not represent a real restaurant or guarantee food safety.
+
 ## Menu
 
 **Menu item**:

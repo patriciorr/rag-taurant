@@ -1,0 +1,38 @@
+.faq-section {
+  padding: 5rem 1.5rem;
+}
+
+.faq-section__content {
+  max-width: 52rem;
+  margin: 0 auto;
+}
+
+.faq-section__content h2 {
+  margin: 0 0 2rem;
+}
+
+.faq-section__item {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.16);
+}
+
+.faq-section__item:first-child {
+  border-top: 1px solid rgba(0, 0, 0, 0.16);
+}
+
+.faq-section__item summary {
+  padding: 1.25rem 0;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.faq-section__item summary:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+
+.faq-section__item p {
+  max-width: 46rem;
+  margin: 0;
+  padding: 0 0 1.25rem;
+  line-height: 1.7;
+}

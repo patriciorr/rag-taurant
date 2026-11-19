@@ -819,10 +819,13 @@ select:focus-visible {
   }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 520px) {
   .site-header nav {
     display: none;
   }
+}
+
+@media (max-width: 420px) {
   .header-booking {
     margin-left: auto;
     font-size: 12px;
