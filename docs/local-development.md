@@ -160,6 +160,11 @@ Railway runs separate frontend and backend services, MongoDB with a persistent v
 S3-compatible bucket. The frontend is public and proxies API and image requests to the private backend. Bucket
 access is authenticated over HTTPS; the bucket is not accessible through Railway's private network.
 
+The Open Graph URL and image URL in `frontend/index.html` point to the public production domain. Update both
+if the domain changes. `frontend/public/og-image.svg` is the source for the 1200 × 630 PNG used for link previews;
+its Playfair Display and DM Sans lettering is converted to paths so it renders consistently without installed fonts.
+After deployment, LinkedIn's Post Inspector can refresh a cached preview.
+
 Production uses `ENVIRONMENT=production`, `VECTOR_SEARCH_MODE=local`, a MongoDB URI and bucket settings. Production
 requires `GOOGLE_API_KEY` and `MENU_ADMIN_TOKEN`; API documentation is disabled. Local Compose defaults to
 `VECTOR_SEARCH_MODE=atlas`. See [the vector search decision](./adr/0002-local-vector-search-fallback-in-production.md).
